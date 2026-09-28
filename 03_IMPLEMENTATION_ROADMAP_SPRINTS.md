@@ -1,6 +1,8 @@
 # LỘ TRÌNH TRIỂN KHAI DỰ ÁN & KẾ HOẠCH SPRINT (10 TUẦN)
 ## HYBRID RENTAL PLATFORM (PHÒNG TRỌ & HOMESTAY)
 
+> Lộ trình 10 tuần dưới đây là bản dự kiến ban đầu, chưa có cơ sở cam kết cho toàn bộ phạm vi production. Dùng [kế hoạch mới, mục 7–12](07_PRODUCTION_DELIVERY_PLAN.md) để chia mốc, nghiệm thu, push Git và kiểm tra trên máy khác. Chủ dự án đã chốt ra mắt trọ và homestay cùng lúc.
+
 ---
 
 ## 1. TỔNG QUAN LỘ TRÌNH 10 TUẦN (5 SPRINTS x 2 TUẦN)
