@@ -21,20 +21,23 @@
 ## 2. ĐỐI TƯỢNG NGƯỜI DÙNG (USER PERSONAS)
 
 ```mermaid
-mindmap
-  root((Hệ Sinh Thái Người Dùng))
-    Khách Thuê (Tenant / Guest)
-      Khách tìm phòng trọ (Sinh viên, công nhân, nhân viên văn phòng thuê 6 - 12 tháng)
-      Khách du lịch / công tác (Cần thuê theo ngày/đêm, trải nghiệm tự check-in)
-      Khách thuê ngắn hạn vài tuần / tháng (Căn hộ dịch vụ, người chuyển công tác)
-    Chủ Nhà / Môi Giới (Host / Landlord)
-      Chủ nhà trọ truyền thống (Có dãy phòng trọ, muốn đăng tin tiếp cận khách, thu tiền mặt/chuyển khoản)
-      Chủ Homestay / Villa chuyên nghiệp (Quản lý nhiều phòng, cần đồng bộ lịch, nhận tiền online)
-      Môi giới bất động sản (Quản lý giỏ hàng, đăng nhiều tin, mua gói đẩy tin VIP)
-    Ban Quản Trị Hệ Thống (Admin & Moderator)
-      Kiểm duyệt viên (Duyệt tin đăng, xác thực CCCD/Sổ hồng chính chủ)
-      Kế toán / Đối soát (Xử lý Payout cho chủ homestay, xuất hóa đơn)
-      CSKH / Trọng tài khiếu nại (Xử lý hủy phòng, tranh chấp hoàn tiền)
+graph TD
+    Root["Hệ Sinh Thái Người Dùng"]
+    
+    Root --> Tenant["1. Khách Thuê (Tenant / Guest)"]
+    Tenant --> T1["Khách tìm trọ dài hạn (Sinh viên, người đi làm)"]
+    Tenant --> T2["Khách du lịch / công tác ngắn hạn"]
+    Tenant --> T3["Khách thuê căn hộ dịch vụ vài tháng"]
+
+    Root --> Host["2. Chủ Nhà / Môi Giới (Host / Landlord)"]
+    Host --> H1["Chủ nhà trọ truyền thống"]
+    Host --> H2["Chủ Homestay / Villa chuyên nghiệp"]
+    Host --> H3["Môi giới quản lý nhiều giỏ hàng"]
+
+    Root --> Admin["3. Ban Quản Trị (Admin & Moderator)"]
+    Admin --> A1["Kiểm duyệt viên tin đăng & KYC"]
+    Admin --> A2["Kế toán đối soát Payout"]
+    Admin --> A3["CSKH giải quyết tranh chấp"]
 ```
 
 ---

@@ -215,15 +215,15 @@ sequenceDiagram
     participant Socket as Socket Gateway (Dev 1)
 
     Note over Client,Socket: 1. Khách mở trang thanh toán QR
-    Client->>Socket: joinRoom("booking:AG-2026-H92X")
+    Client->>Socket: joinRoom(bookingCode)
     
     Note over Client,Socket: 2. Khi Webhook thanh toán thành công
-    Socket-->>Client: emit("PAYMENT_SUCCESS", { bookingCode: "AG-2026-H92X", status: "CONFIRMED" })
-    Note over Client: Frontend tự động rung/phát nhạc chuông & chuyển sang trang thành công
+    Socket-->>Client: emit(PAYMENT_SUCCESS, status)
+    Note over Client: Frontend chuyển sang trang thành công
 
     Note over Client,Socket: 3. Chủ nhà đang xem Lịch Tháng
-    Socket-->>Client: emit("CALENDAR_UPDATED", { unitId: "...", dates: ["2026-10-20", "2026-10-21"] })
-    Note over Client: Lưới lịch tự động đổi sang màu đỏ (Booked)
+    Socket-->>Client: emit(CALENDAR_UPDATED, dates)
+    Note over Client: Lưới lịch tự động đổi sang màu đỏ Booked
 ```
 
 | Tên Sự Kiện (Event) | Hướng Gửi | Payload | Mục Đích |
@@ -237,34 +237,29 @@ sequenceDiagram
 
 ## 4. BIỂU ĐỒ TRẠNG THÁI NGHIỆP VỤ (STATE MACHINES)
 
-### 4.1. Vòng Đời Đơn Đặt Phòng Homestay (Booking State Machine)
+### 4.1. Vòng Đời Đơn Đặt Phòng Homestay (Booking Flow)
 
 ```mermaid
-stateDiagram-v2
-    [*] --> PENDING_PAYMENT : Khách chọn ngày & Giữ chỗ (Hold 15m)
-    PENDING_PAYMENT --> CANCELLED_TIMEOUT : Hết 15 phút không thanh toán (BullMQ)
-    PENDING_PAYMENT --> CONFIRMED : Quét QR thanh toán thành công (Webhook IPN)
+flowchart TD
+    Start([Khởi tạo]) --> PENDING_PAYMENT["PENDING_PAYMENT (Giữ chỗ 15 phút)"]
+    PENDING_PAYMENT -->|Hết 15 phút không thanh toán| CANCELLED_TIMEOUT["CANCELLED_TIMEOUT (Hủy do quá hạn)"]
+    PENDING_PAYMENT -->|Quét QR thanh toán thành công| CONFIRMED["CONFIRMED (Đã xác nhận thanh toán)"]
     
-    CONFIRMED --> CHECKED_IN : Khách nhận phòng vào ngày Check-in
-    CONFIRMED --> CANCELLED_REFUNDED : Khách hủy phòng (Áp dụng chính sách hủy)
+    CONFIRMED -->|Đến ngày nhận phòng| CHECKED_IN["CHECKED_IN (Đã nhận phòng)"]
+    CONFIRMED -->|Khách yêu cầu hủy| CANCELLED_REFUNDED["CANCELLED_REFUNDED (Hủy và hoàn tiền)"]
     
-    CHECKED_IN --> COMPLETED : Trả phòng thành công (Đủ điều kiện Viết Review)
-    
-    CANCELLED_TIMEOUT --> [*]
-    CANCELLED_REFUNDED --> [*]
-    COMPLETED --> [*]
+    CHECKED_IN -->|Hoàn tất lưu trú| COMPLETED["COMPLETED (Mở quyền viết Review)"]
 ```
 
-### 4.2. Vòng Đời Tin Đăng Bất Động Sản (Property State Machine)
+### 4.2. Vòng Đời Tin Đăng Bất Động Sản (Property Lifecycle)
 
 ```mermaid
-stateDiagram-v2
-    [*] --> DRAFT : Chủ nhà đang soạn thảo tin
-    DRAFT --> PENDING_REVIEW : Chủ nhà bấm "Gửi duyệt tin"
-    PENDING_REVIEW --> REJECTED : Admin từ chối (Ảnh mờ, tin trùng, sai giá)
-    REJECTED --> PENDING_REVIEW : Chủ nhà sửa lại và gửi duyệt
-    PENDING_REVIEW --> PUBLISHED : Admin bấm duyệt hiển thị trên sàn
-    PUBLISHED --> HIDDEN : Chủ nhà tạm ẩn vì đã cho thuê hết phòng
-    HIDDEN --> PUBLISHED : Chủ nhà mở lại khi có phòng trống
-    PUBLISHED --> EXPIRED : Tin hết hạn gói VIP/thời hạn hiển thị
+flowchart TD
+    DRAFT["DRAFT (Bản nháp)"] -->|Chủ nhà gửi duyệt| PENDING_REVIEW["PENDING_REVIEW (Chờ duyệt)"]
+    PENDING_REVIEW -->|Admin từ chối| REJECTED["REJECTED (Bị từ chối)"]
+    REJECTED -->|Sửa lại và gửi| PENDING_REVIEW
+    PENDING_REVIEW -->|Admin phê duyệt| PUBLISHED["PUBLISHED (Đang hiển thị trên sàn)"]
+    PUBLISHED -->|Chủ nhà tạm ẩn| HIDDEN["HIDDEN (Tạm ẩn)"]
+    HIDDEN -->|Chủ nhà mở lại| PUBLISHED
+    PUBLISHED -->|Hết hạn gói tin| EXPIRED["EXPIRED (Hết hạn)"]
 ```

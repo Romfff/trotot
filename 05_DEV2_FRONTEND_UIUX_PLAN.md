@@ -18,36 +18,37 @@ Developer 2 là người chịu trách nhiệm về toàn bộ trải nghiệm n
 
 ## 2. CHECKLIST CÔNG VIỆC THEO TỪNG GIAI ĐOẠN
 
-```mermaid
-checklist
-  Sprint 1 : Base Framework, Design System & Auth UI
-    - Khởi tạo Next.js 14/15 (TypeScript, TailwindCSS, Shadcn UI)
-    - Xây dựng Theme màu, Typography, Bộ Icon Lucide
-    - Header, Footer, Bottom Navigation Bar cho Mobile
-    - Màn hình Auth (Đăng nhập, Đăng ký, Nhập mã OTP, Reset pass)
-    - Cấu hình Axios Client + TanStack Query + Zustand Auth Store
-  Sprint 2 : Giao Diện Phân Hệ Phòng Trọ Dài Hạn
-    - Màn hình Tìm trọ: Bộ lọc đa tiêu chí (Giá, Quận, Tiện ích)
-    - Tích hợp Bản đồ Leaflet/Mapbox: Render pin phòng trọ tương tác
-    - Trang Chi tiết phòng: Gallery ảnh, Bảng chi phí điện nước, Host card
-    - Nút Gọi nhanh, Mở chat Zalo, Modal Đặt lịch xem phòng
-    - Form Đăng tin phòng trọ cho Chủ nhà (Kéo thả ảnh, chọn tiện nghi)
-  Sprint 3 : Giao Diện Đặt Phòng Homestay (Chuẩn Agoda)
-    - Component Chọn ngày lưu trú (Date Range Picker) & Chọn khách
-    - Khung tóm tắt chi phí Sticky (Giá theo đêm + Phí dịch vụ)
-    - Màn hình Checkout: Điền thông tin khách & Đồng hồ đếm ngược 15 phút
-    - Trang Quản lý chuyến đi của tôi (My Bookings)
-  Sprint 4 : Màn Hình Thanh Toán QR & Portal Chủ Nhà
-    - Giao diện quét mã QR VietQR động (Copy số tài khoản, Cú pháp)
-    - Hiệu ứng Realtime tự động nhảy trang khi thanh toán thành công
-    - Host Portal: Ma trận Lịch tháng (Calendar Grid View) cập nhật giá/khóa ngày
-    - Dashboard Thống kê doanh thu & Danh sách booking của Host
-  Sprint 5 : Admin CMS, Đánh Giá & Tối Ưu SEO
-    - Admin CMS: Giao diện duyệt tin phòng trọ 1-click
-    - Form Đánh giá sao & Nhận xét xác thực sau chuyến đi
-    - Popup Chat Realtime với Chủ nhà ở góc màn hình
-    - Gắn thẻ Schema.org Microdata & Tối ưu Google Lighthouse > 90
-```
+### Sprint 1: Base Framework, Design System & Auth UI (Tuần 1 - 2)
+- [ ] Khởi tạo Next.js 14/15 (TypeScript, TailwindCSS, Shadcn UI)
+- [ ] Xây dựng Theme màu, Typography, Bộ Icon Lucide
+- [ ] Header, Footer, Bottom Navigation Bar cho Mobile
+- [ ] Màn hình Auth (Đăng nhập, Đăng ký, Nhập mã OTP, Reset pass)
+- [ ] Cấu hình Axios Client + TanStack Query + Zustand Auth Store
+
+### Sprint 2: Giao Diện Phân Hệ Phòng Trọ Dài Hạn (Tuần 3 - 4)
+- [ ] Màn hình Tìm trọ: Bộ lọc đa tiêu chí (Giá, Quận, Tiện ích)
+- [ ] Tích hợp Bản đồ Leaflet / Mapbox: Render pin phòng trọ tương tác
+- [ ] Trang Chi tiết phòng: Gallery ảnh, Bảng chi phí điện nước, Host card
+- [ ] Nút Gọi nhanh, Mở chat Zalo, Modal Đặt lịch xem phòng
+- [ ] Form Đăng tin phòng trọ cho Chủ nhà (Kéo thả ảnh, chọn tiện nghi)
+
+### Sprint 3: Giao Diện Đặt Phòng Homestay (Chuẩn Agoda) (Tuần 5 - 6)
+- [ ] Component Chọn ngày lưu trú (Date Range Picker) & Chọn khách
+- [ ] Khung tóm tắt chi phí Sticky (Giá theo đêm + Phí dịch vụ)
+- [ ] Màn hình Checkout: Điền thông tin khách & Đồng hồ đếm ngược 15 phút
+- [ ] Trang Quản lý chuyến đi của tôi (My Bookings)
+
+### Sprint 4: Màn Hình Thanh Toán QR & Portal Chủ Nhà (Tuần 7 - 8)
+- [ ] Giao diện quét mã QR VietQR động (Copy số tài khoản, Cú pháp)
+- [ ] Hiệu ứng Realtime tự động nhảy trang khi thanh toán thành công
+- [ ] Host Portal: Ma trận Lịch tháng (Calendar Grid View) cập nhật giá / khóa ngày
+- [ ] Dashboard Thống kê doanh thu & Danh sách booking của Host
+
+### Sprint 5: Admin CMS, Đánh Giá & Tối Ưu SEO (Tuần 9 - 10)
+- [ ] Admin CMS: Giao diện duyệt tin phòng trọ 1-click
+- [ ] Form Đánh giá sao & Nhận xét xác thực sau chuyến đi
+- [ ] Popup Chat Realtime với Chủ nhà ở góc màn hình
+- [ ] Gắn thẻ Schema.org Microdata & Tối ưu Google Lighthouse > 90
 
 ---
 

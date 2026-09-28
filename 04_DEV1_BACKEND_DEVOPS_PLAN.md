@@ -17,35 +17,36 @@ Developer 1 là người chịu trách nhiệm chính về nền tảng kỹ thu
 
 ## 2. CHECKLIST CÔNG VIỆC THEO TỪNG GIAI ĐOẠN
 
-```mermaid
-checklist
-  Sprint 1 : Hạ tầng, Database, Auth & Media
-    - Khởi tạo Docker Compose (Postgres PostGIS, Redis)
-    - Cấu hình NestJS + Prisma ORM + Class Validator
-    - Viết Auth Module (JWT Access/Refresh, RBAC, Phone OTP)
-    - Tích hợp Cloudinary/R2 Service upload và resize ảnh
-    - Cấu hình Swagger OpenAPI tại /api/docs
-  Sprint 2 : API Phòng Trọ Dài Hạn & PostGIS
-    - Migration Schema Properties, LongTermDetails, Amenities
-    - API Đăng tin trọ & Quản lý tin (Chủ trọ)
-    - API Tìm kiếm bán kính PostGIS ST_DWithin quanh tọa độ
-    - API Đặt lịch hẹn xem phòng & thông báo chủ trọ
-  Sprint 3 : Booking Engine Homestay & Redis Lock
-    - Migration Schema HomestayUnits, CalendarPricing, Bookings
-    - Thuật toán kiểm tra lịch trống Date Overlap & Tính giá
-    - Distributed Lock Redis Redlock giữ phòng 15 phút
-    - Worker BullMQ tự động giải phóng phòng khi hết hạn
-  Sprint 4 : Tích Hợp Cổng Thanh Toán & Webhook
-    - Tích hợp VietQR (PayOS/SePAY) sinh QR động
-    - Tích hợp VNPay URL redirect & IPN Webhook
-    - Xử lý Idempotency Key và xác thực HMAC Signature
-    - Module Quản lý ví và tính hoa hồng (Commission/Payout)
-  Sprint 5 : Realtime Chat, Admin API & Triển khai VPS
-    - WebSocket Gateway (Socket.io) cho Chat và Notification
-    - API Admin CMS duyệt tin & báo cáo GMV
-    - Setup Nginx Reverse Proxy, SSL Let's Encrypt trên Linux VPS
-    - Thiết lập script tự động sao lưu Database mỗi đêm
-```
+### Sprint 1: Hạ Tầng, Database, Auth & Media (Tuần 1 - 2)
+- [ ] Khởi tạo Docker Compose (Postgres PostGIS, Redis 7)
+- [ ] Cấu hình NestJS + Prisma ORM + Class Validator
+- [ ] Xây dựng Auth Module (JWT Access/Refresh, RBAC Guards, Phone OTP)
+- [ ] Tích hợp Cloudinary / Cloudflare R2 upload & resize ảnh
+- [ ] Cấu hình Swagger OpenAPI tại `/api/docs`
+
+### Sprint 2: API Phòng Trọ Dài Hạn & PostGIS (Tuần 3 - 4)
+- [ ] Migration Schema Properties, LongTermDetails, Amenities
+- [ ] Viết API Đăng tin trọ & Quản lý tin (Chủ trọ)
+- [ ] Viết API Tìm kiếm bán kính PostGIS `ST_DWithin` quanh tọa độ
+- [ ] Viết API Đặt lịch hẹn xem phòng & thông báo chủ trọ
+
+### Sprint 3: Booking Engine Homestay & Redis Lock (Tuần 5 - 6)
+- [ ] Migration Schema HomestayUnits, CalendarPricing, Bookings
+- [ ] Thuật toán kiểm tra lịch trống Date Overlap & tính giá
+- [ ] Distributed Lock Redis Redlock giữ phòng 15 phút
+- [ ] Worker BullMQ tự động giải phóng phòng khi hết hạn
+
+### Sprint 4: Tích Hợp Cổng Thanh Toán & Webhook (Tuần 7 - 8)
+- [ ] Tích hợp VietQR (PayOS / SePAY) sinh mã QR động
+- [ ] Tích hợp VNPay URL redirect & IPN Webhook
+- [ ] Xử lý Idempotency Key & xác thực chữ ký HMAC SHA512
+- [ ] Module Quản lý ví và tính hoa hồng (Commission / Payout)
+
+### Sprint 5: Realtime Chat, Admin API & Triển Khai VPS (Tuần 9 - 10)
+- [ ] WebSocket Gateway (Socket.io) cho Chat và Notification
+- [ ] Viết API Admin CMS duyệt tin & báo cáo GMV
+- [ ] Setup Nginx Reverse Proxy, SSL Let's Encrypt trên Linux VPS
+- [ ] Thiết lập script tự động sao lưu Database mỗi đêm
 
 ---
 

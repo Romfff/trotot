@@ -92,7 +92,7 @@ erDiagram
         string phone
         string email
         string full_name
-        string role "TENANT, HOST, ADMIN"
+        string role
         string avatar_url
         boolean is_phone_verified
         boolean is_identity_verified
@@ -113,15 +113,15 @@ erDiagram
         uuid host_id FK
         string title
         string slug
-        string property_type "PHONG_TRO, NHA_NGUYEN_CAN, HOMESTAY, VILLA"
-        string rental_mode "LONG_TERM, SHORT_TERM, HYBRID"
+        string property_type
+        string rental_mode
         text description
         string address_detail
         string province_code
         string district_code
         string ward_code
-        geometry location_gps "Point 4326 PostGIS"
-        string status "DRAFT, PENDING, PUBLISHED, HIDDEN"
+        geometry location_gps
+        string status
         boolean is_vip
         timestamp vip_expire_at
         boolean is_verified
@@ -133,9 +133,9 @@ erDiagram
         decimal deposit_amount
         integer lease_term_months
         decimal electricity_cost
-        string electricity_unit "KWH, FIXED"
+        string electricity_unit
         decimal water_cost
-        string water_unit "M3, PERSON, FIXED"
+        string water_unit
         decimal internet_cost
         decimal parking_fee
         string contact_phone
@@ -155,7 +155,7 @@ erDiagram
         decimal cleaning_fee
         time check_in_time
         time check_out_time
-        string cancellation_policy "FLEXIBLE, MODERATE, STRICT"
+        string cancellation_policy
         boolean instant_book
     }
 
@@ -164,7 +164,7 @@ erDiagram
         uuid homestay_unit_id FK
         date date
         decimal custom_price
-        string status "AVAILABLE, BLOCKED, BOOKED"
+        string status
     }
 
     BOOKINGS {
@@ -178,8 +178,8 @@ erDiagram
         decimal total_amount
         decimal commission_amount
         decimal host_payout_amount
-        string payment_status "PENDING, PAID, REFUNDED"
-        string booking_status "PENDING_CONFIRMATION, CONFIRMED, COMPLETED, CANCELLED"
+        string payment_status
+        string booking_status
         timestamp expires_at
     }
 
@@ -187,11 +187,11 @@ erDiagram
         uuid id PK
         uuid booking_id FK
         uuid user_id FK
-        string transaction_type "BOOKING_PAYMENT, VIP_UPGRADE, REFUND, PAYOUT"
-        string payment_method "VIETQR, VNPAY, MOMO, WALLET"
+        string transaction_type
+        string payment_method
         string provider_reference
         decimal amount
-        string status "PENDING, SUCCESS, FAILED"
+        string status
         jsonb payload_log
     }
 ```
@@ -369,19 +369,19 @@ sequenceDiagram
     participant DB as Postgres Transaction
 
     Client->>Server: Gửi yêu cầu đặt phòng (Unit X, từ ngày D1 đến D2)
-    Server->>Redis: Thử acquire Lock key: `lock:unit:{unit_id}:{date_hash}` (TTL = 15 phút)
+    Server->>Redis: Thử acquire Lock key (TTL = 15 phút)
     alt Lock Thất Bại (Đang có người giữ phòng)
         Redis-->>Server: Lock rejected
-        Server-->>Client: Trả về lỗi 409 Conflict: "Phòng đang được người khác giữ chỗ, vui lòng thử lại sau"
+        Server-->>Client: Báo lỗi 409: Phòng đang được giữ chỗ, vui lòng thử lại sau
     else Lock Thành Công
         Redis-->>Server: Lock acquired
-        Server->>DB: Kiểm tra bảng `calendar_pricing` trạng thái có bị BOOKED chưa
+        Server->>DB: Kiểm tra bảng calendar_pricing trạng thái BOOKED
         alt Ngày đã bị BOOKED trong DB
             Server->>Redis: Release lock
-            Server-->>Client: "Phòng đã kín trong khoảng thời gian này"
+            Server-->>Client: Thông báo: Phòng đã kín trong thời gian này
         else Ngày hợp lệ
-            Server->>DB: INSERT Booking (Status = PENDING)
-            Server-->>Client: Trả về Booking & Mã QR VietQR (Hạn 15 phút)
+            Server->>DB: INSERT Booking với status PENDING
+            Server-->>Client: Trả về Booking và Mã QR VietQR (Hạn 15 phút)
         end
     end
 ```

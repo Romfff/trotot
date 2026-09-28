@@ -45,20 +45,20 @@ Hệ thống tài liệu dự án được phân chia thành các file chuyên b
 
 ```mermaid
 graph TD
-    subgraph "DEV 1 - LEAD BACKEND / DEVOPS / DATA"
-        D1_DB[(PostgreSQL + PostGIS + Redis)]
-        D1_API[NestJS Core API & Auth]
-        D1_ENGINE[Booking Engine & Lock Calendar]
-        D1_PAY[Payment Gateways & Webhooks]
-        D1_OPS[Docker, CI/CD, Nginx, Linux Server]
+    subgraph DEV1["DEV 1 - LEAD BACKEND / DEVOPS / DATA"]
+        D1_DB[("PostgreSQL + PostGIS + Redis")]
+        D1_API["NestJS Core API & Auth"]
+        D1_ENGINE["Booking Engine & Lock Calendar"]
+        D1_PAY["Payment Gateways & Webhooks"]
+        D1_OPS["Docker, CI/CD, Nginx, Linux Server"]
     end
 
-    subgraph "DEV 2 - LEAD FRONTEND / UI/UX / CLIENT"
-        D2_WEB[Next.js 14/15 App Router]
-        D2_MOBILE[Mobile-First Responsive UI]
-        D2_HOST[Host Portal: Calendar & Pricing]
-        D2_ADMIN[Admin Dashboard CMS]
-        D2_SEO[SEO Optimization & Schema Microdata]
+    subgraph DEV2["DEV 2 - LEAD FRONTEND / UI/UX / CLIENT"]
+        D2_WEB["Next.js 14/15 App Router"]
+        D2_MOBILE["Mobile-First Responsive UI"]
+        D2_HOST["Host Portal: Calendar & Pricing"]
+        D2_ADMIN["Admin Dashboard CMS"]
+        D2_SEO["SEO Optimization & Schema Microdata"]
     end
 
     D1_API <==>|REST API & WebSocket| D2_WEB

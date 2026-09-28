@@ -11,24 +11,36 @@ Mô hình triển khai chuẩn Agile/Scrum rút gọn cho **2 Developers**:
 - **Sprint Demo & Review:** Cuối mỗi thứ Sáu của tuần thứ 2 mỗi Sprint.
 
 ```mermaid
-gantt
-    title LỘ TRÌNH 10 TUẦN TRIỂN KHAI DỰ ÁN (2 DEVELOPERS)
-    dateFormat  YYYY-MM-DD
-    section Sprint 1: Nền Móng & Auth
-    Thiết lập Repo, DB, Docker, Auth API (Dev 1)      :s1_d1, 2026-10-01, 14d
-    Thiết kế Design System, Layout, Auth UI (Dev 2)    :s1_d2, 2026-10-01, 14d
-    section Sprint 2: Phòng Trọ Dài Hạn
-    Listing API, PostGIS Radius Search, Media (Dev 1)  :s2_d1, 2026-10-15, 14d
-    Trang Tìm Trọ, Bộ lọc, Bản đồ, Chi tiết (Dev 2)   :s2_d2, 2026-10-15, 14d
-    section Sprint 3: Homestay & Booking Engine
-    Calendar Engine, Redis Lock, Booking API (Dev 1)   :s3_d1, 2026-10-29, 14d
-    Flow Đặt Homestay, Chọn ngày, Tóm tắt giá (Dev 2)  :s3_d2, 2026-10-29, 14d
-    section Sprint 4: Thanh Toán & Host Portal
-    Tích hợp VietQR, VNPay, Webhook IPN, Payout (Dev 1):s4_d1, 2026-11-12, 14d
-    Portal Chủ nhà: Lịch tháng, Doanh thu, QR (Dev 2)  :s4_d2, 2026-11-12, 14d
-    section Sprint 5: Admin CMS, SEO & Production
-    BullMQ Queue, Audit Log, Server Deployment (Dev 1) :s5_d1, 2026-11-26, 14d
-    Admin CMS, SEO Microdata, Kiểm thử UAT (Dev 2)     :s5_d2, 2026-11-26, 14d
+flowchart TD
+    subgraph S1["Sprint 1: Nền Móng & Auth (Tuần 1 - 2)"]
+        D1_1["Dev 1: Docker, DB PostgreSQL, Redis, Auth API"]
+        D2_1["Dev 2: Next.js, Design System, Auth UI"]
+    end
+
+    subgraph S2["Sprint 2: Phòng Trọ Dài Hạn (Tuần 3 - 4)"]
+        D1_2["Dev 1: Listing API, PostGIS Radius Search, Media"]
+        D2_2["Dev 2: UI Tìm trọ, Bản đồ Leaflet, Đăng tin"]
+    end
+
+    subgraph S3["Sprint 3: Homestay & Booking Engine (Tuần 5 - 6)"]
+        D1_3["Dev 1: Booking Engine, Redis Redlock, BullMQ"]
+        D2_3["Dev 2: Date Picker Agoda, Tóm tắt giá, Checkout"]
+    end
+
+    subgraph S4["Sprint 4: Thanh Toán & Host Portal (Tuần 7 - 8)"]
+        D1_4["Dev 1: VietQR, VNPay, Webhook IPN, Payout"]
+        D2_4["Dev 2: Giao diện Quét QR, Ma trận Lịch tháng Host"]
+    end
+
+    subgraph S5["Sprint 5: Admin CMS, SEO & Production (Tuần 9 - 10)"]
+        D1_5["Dev 1: API Duyệt tin, Nginx, SSL, Backup DB"]
+        D2_5["Dev 2: Admin CMS, Schema.org SEO, Kiểm thử UAT"]
+    end
+
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
 ```
 
 ---
