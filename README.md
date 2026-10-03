@@ -2,6 +2,20 @@
 
 > **Mô hình kết hợp:** Đăng tin thuê trọ dài hạn (*Nhà Tốt / Chợ Tốt*) + Đặt phòng Homestay ngắn hạn trực tuyến (*Agoda / Airbnb*).
 
+> **Sprint 1:** backend và frontend Auth chạy local với PostgreSQL/PostGIS + Redis thật, OTP mock. Giao diện trọ/homestay hiện dùng dữ liệu mẫu. Upload server ảnh riêng đang hoãn; đây chưa phải bản production.
+
+## Chạy trên máy khác
+
+Clone nhánh `sprint-1` bằng `git clone --branch sprint-1 https://github.com/Romfff/trotot.git`, rồi làm theo [hướng dẫn backend](docs/BACKEND_SPRINT1_SETUP.md) và [hướng dẫn frontend](docs/FRONTEND_SPRINT1_SETUP.md). Dùng Node 24.15.0 và Docker Compose hỗ trợ `--wait`.
+
+Hai ứng dụng cần cùng `BFF_PROXY_SECRET`. Chỉ file `.env.example` chứa giá trị mẫu được đưa lên Git; tự tạo `.env` và `frontend/.env.local` trên máy chạy. Không dùng secret mẫu cho môi trường có dữ liệu thật.
+
+Web: `http://localhost:3000`; Swagger: `http://localhost:5000/api/docs`; health: `http://localhost:5000/api/v1/health`. [Contract API đã triển khai](docs/BACKEND_SPRINT1_API.md). Setup trên máy đồng đội và kiểm thử thiết bị mobile thật còn cần xác nhận.
+
+Kiểm chứng checkout sạch ngày 03/10/2026: cài từ lockfile, build/lint backend và frontend, typecheck frontend, 40 test backend + 46 test frontend + 8 test tích hợp PostgreSQL/Redis thật đều qua. OTP trong các test tích hợp vẫn là mock local.
+
+Kiểm tra dependency ngày 03/10/2026: `npm audit --omit=dev` ở frontend không báo lỗ hổng; audit đầy đủ báo 5 cảnh báo high cùng chuỗi lint `eslint-config-next → fast-glob → micromatch → braces`. [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) chưa có bản vá tại thời điểm kiểm tra. Không dùng công cụ lint này để xử lý glob tùy ý từ người dùng không tin cậy; cần kiểm tra lại advisory trước triển khai. Không chạy `npm audit fix --force` vì đề xuất hiện tại làm đổi major của cấu hình Next.js.
+
 ---
 
 ## 1. TỔNG QUAN DỰ ÁN
@@ -31,13 +45,13 @@ Hệ thống tài liệu dự án được phân chia thành các file chuyên b
 
 | STT | File Tài Liệu | Nội Dung Chính | Phụ Trách Chính |
 |:---:|:---|:---|:---:|
-| 1 | [README.md](file:///d:/DuAn_ThueNha/README.md) | Tổng quan, Tech Stack, Kiến trúc, Quy ước Git/Coding | Toàn đội |
-| 2 | [01_PROJECT_REQUIREMENTS_SPEC.md](file:///d:/DuAn_ThueNha/01_PROJECT_REQUIREMENTS_SPEC.md) | Đặc tả nghiệp vụ (SRS), Phân hệ User, Luồng Trọ vs Homestay | Toàn đội |
-| 3 | [02_SYSTEM_ARCHITECTURE_DATABASE.md](file:///d:/DuAn_ThueNha/02_SYSTEM_ARCHITECTURE_DATABASE.md) | Kiến trúc kỹ thuật, ERD Database, Chống Double-Booking, PostGIS | Dev 1 |
-| 4 | [03_IMPLEMENTATION_ROADMAP_SPRINTS.md](file:///d:/DuAn_ThueNha/03_IMPLEMENTATION_ROADMAP_SPRINTS.md) | Lộ trình 10 tuần (5 Sprints), Milestones, KPI nghiệm thu | Toàn đội |
-| 5 | [04_DEV1_BACKEND_DEVOPS_PLAN.md](file:///d:/DuAn_ThueNha/04_DEV1_BACKEND_DEVOPS_PLAN.md) | Kế hoạch hành động chi tiết Dev 1 (Backend, Database, DevOps, Payment) | **Dev 1** |
-| 6 | [05_DEV2_FRONTEND_UIUX_PLAN.md](file:///d:/DuAn_ThueNha/05_DEV2_FRONTEND_UIUX_PLAN.md) | Kế hoạch hành động chi tiết Dev 2 (Next.js, UI/UX Mobile, Host Portal, Admin) | **Dev 2** |
-| 7 | [06_API_SPECS_AND_WORKFLOWS.md](file:///d:/DuAn_ThueNha/06_API_SPECS_AND_WORKFLOWS.md) | Đặc tả REST API, Webhook, State Machine, Luồng Realtime Socket | Dev 1 & Dev 2 |
+| 1 | [README.md](README.md) | Tổng quan, Tech Stack, Kiến trúc, Quy ước Git/Coding | Toàn đội |
+| 2 | [01_PROJECT_REQUIREMENTS_SPEC.md](01_PROJECT_REQUIREMENTS_SPEC.md) | Đặc tả nghiệp vụ (SRS), Phân hệ User, Luồng Trọ vs Homestay | Toàn đội |
+| 3 | [02_SYSTEM_ARCHITECTURE_DATABASE.md](02_SYSTEM_ARCHITECTURE_DATABASE.md) | Kiến trúc kỹ thuật, ERD Database, Chống Double-Booking, PostGIS | Dev 1 |
+| 4 | [03_IMPLEMENTATION_ROADMAP_SPRINTS.md](03_IMPLEMENTATION_ROADMAP_SPRINTS.md) | Lộ trình 10 tuần (5 Sprints), Milestones, KPI nghiệm thu | Toàn đội |
+| 5 | [04_DEV1_BACKEND_DEVOPS_PLAN.md](04_DEV1_BACKEND_DEVOPS_PLAN.md) | Kế hoạch hành động chi tiết Dev 1 (Backend, Database, DevOps, Payment) | **Dev 1** |
+| 6 | [05_DEV2_FRONTEND_UIUX_PLAN.md](05_DEV2_FRONTEND_UIUX_PLAN.md) | Kế hoạch hành động chi tiết Dev 2 (Next.js, UI/UX Mobile, Host Portal, Admin) | **Dev 2** |
+| 7 | [06_API_SPECS_AND_WORKFLOWS.md](06_API_SPECS_AND_WORKFLOWS.md) | Đặc tả REST API, Webhook, State Machine, Luồng Realtime Socket | Dev 1 & Dev 2 |
 
 ---
 
