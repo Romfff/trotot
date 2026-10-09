@@ -1,0 +1,280 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -------------------------------------------------------------
+// 1. Phân Quyền & Người Dùng
+// -------------------------------------------------------------
+enum UserRole {
+  TENANT // Khách thuê phòng / Đặt homestay
+  HOST   // Chủ nhà trọ / Chủ homestay
+  ADMIN  // Quản trị viên hệ thống
+}
+
+enum UserStatus {
+  ACTIVE
+  BANNED
+}
+
+model User {
+  id                 String     @id @default(uuid())
+  phone              String     @unique
+  email              String?    @unique
+  passwordHash       String
+  fullName           String
+  role               UserRole   @default(TENANT)
+  avatarUrl          String?
+  isPhoneVerified    Boolean    @default(false)
+  isIdentityVerified Boolean    @default(false)
+  status             UserStatus @default(ACTIVE)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  // Quan hệ
+  hostProfile         HostProfile?
+  properties          Property[]
+  bookings            Booking[]
+  viewingAppointments ViewingAppointment[]
+
+  @@map("users")
+}
+
+model HostProfile {
+  userId            String  @id
+  bankCode          String?
+  bankAccountNumber String?
+  bankAccountName   String?
+  balanceWallet     Decimal @default(0) @db.Decimal(15, 2)
+  payoutSchedule    String  @default("WEEKLY")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("host_profiles")
+}
+
+// -------------------------------------------------------------
+// 2. Bất Động Sản (Phòng Trọ & Homestay)
+// -------------------------------------------------------------
+enum PropertyType {
+  PHONG_TRO
+  CHUNG_CU_MINI
+  NHA_NGUYEN_CAN
+  HOMESTAY
+  VILLA
+}
+
+enum RentalMode {
+  LONG_TERM  // Thuê trọ dài hạn (kiểu Nhà Tốt)
+  SHORT_TERM // Đặt phòng homestay ngắn hạn (kiểu Agoda)
+  HYBRID     // Cho thuê linh hoạt cả 2 hình thức
+}
+
+enum PropertyStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+  HIDDEN
+}
+
+model Property {
+  id            String         @id @default(uuid())
+  hostId        String
+  title         String
+  slug          String         @unique
+  propertyType  PropertyType
+  rentalMode    RentalMode
+  description   String         @db.Text
+  addressDetail String
+  provinceCode  String
+  districtCode  String
+  wardCode      String
+  latitude      Float
+  longitude     Float
+  status        PropertyStatus @default(PENDING_REVIEW)
+  isVip         Boolean        @default(false)
+  vipExpireAt   DateTime?
+  isVerified    Boolean        @default(false)
+  viewCount     Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Quan hệ
+  host                User                 @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  longTermDetail      LongTermDetail?
+  homestayUnits       HomestayUnit[]
+  images              PropertyImage[]
+  viewingAppointments ViewingAppointment[]
+
+  @@index([status])
+  @@index([rentalMode])
+  @@map("properties")
+}
+
+model PropertyImage {
+  id         String   @id @default(uuid())
+  propertyId String
+  imageUrl   String
+  isCover    Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("property_images")
+}
+
+// -------------------------------------------------------------
+// 3. Chi Tiết Thuê Trọ Dài Hạn (Mô hình Nhà Tốt)
+// -------------------------------------------------------------
+model LongTermDetail {
+  propertyId       String  @id
+  monthlyPrice     Decimal @db.Decimal(15, 2)
+  depositAmount    Decimal @db.Decimal(15, 2)
+  leaseTermMonths  Int     @default(6)
+  areaSqm          Decimal @db.Decimal(6, 2)
+  electricityCost  Decimal @db.Decimal(12, 2)
+  electricityUnit  String  @default("KWH")
+  waterCost        Decimal @db.Decimal(12, 2)
+  waterUnit        String  @default("M3")
+  internetCost     Decimal @default(0) @db.Decimal(12, 2)
+  parkingFee       Decimal @default(0) @db.Decimal(12, 2)
+  contactPhone     String
+  contactZalo      String?
+  allowPets        Boolean @default(false)
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("long_term_details")
+}
+
+// -------------------------------------------------------------
+// 4. Phân Hệ Homestay & Lịch Phòng (Mô hình Agoda)
+// -------------------------------------------------------------
+enum CancellationPolicy {
+  FLEXIBLE
+  MODERATE
+  STRICT
+}
+
+model HomestayUnit {
+  id                    String             @id @default(uuid())
+  propertyId            String
+  unitName              String
+  maxAdults             Int                @default(2)
+  maxChildren           Int                @default(1)
+  bedrooms              Int                @default(1)
+  bathrooms             Int                @default(1)
+  basePricePerNight     Decimal            @db.Decimal(15, 2)
+  weekendPricePerNight  Decimal?           @db.Decimal(15, 2)
+  cleaningFee           Decimal            @default(0) @db.Decimal(12, 2)
+  checkInTime           String             @default("14:00")
+  checkOutTime          String             @default("12:00")
+  cancellationPolicy    CancellationPolicy @default(FLEXIBLE)
+  instantBook           Boolean            @default(true)
+  createdAt             DateTime           @default(now())
+
+  property        Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  calendarPricing CalendarPricing[]
+  bookings        Booking[]
+
+  @@map("homestay_units")
+}
+
+enum CalendarStatus {
+  AVAILABLE
+  BLOCKED
+  BOOKED
+}
+
+model CalendarPricing {
+  id             BigInt         @id @default(autoincrement())
+  homestayUnitId String
+  date           DateTime       @db.Date
+  customPrice    Decimal?       @db.Decimal(15, 2)
+  status         CalendarStatus @default(AVAILABLE)
+
+  homestayUnit HomestayUnit @relation(fields: [homestayUnitId], references: [id], onDelete: Cascade)
+
+  @@unique([homestayUnitId, date])
+  @@index([homestayUnitId, date])
+  @@map("calendar_pricing")
+}
+
+// -------------------------------------------------------------
+// 5. Đơn Đặt Phòng & Lịch Hẹn
+// -------------------------------------------------------------
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+enum BookingStatus {
+  PENDING_CONFIRMATION
+  CONFIRMED
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+}
+
+model Booking {
+  id               String        @id @default(uuid())
+  bookingCode      String        @unique
+  homestayUnitId   String
+  guestId          String
+  checkInDate      DateTime      @db.Date
+  checkOutDate     DateTime      @db.Date
+  totalNights      Int
+  numAdults        Int           @default(1)
+  numChildren      Int           @default(0)
+  baseAmount       Decimal       @db.Decimal(15, 2)
+  cleaningFee      Decimal       @default(0) @db.Decimal(15, 2)
+  serviceFee       Decimal       @default(0) @db.Decimal(15, 2)
+  totalAmount      Decimal       @db.Decimal(15, 2)
+  commissionRate   Decimal       @default(10.0) @db.Decimal(5, 2)
+  commissionAmount Decimal       @db.Decimal(15, 2)
+  hostPayoutAmount Decimal       @db.Decimal(15, 2)
+  paymentStatus    PaymentStatus @default(PENDING)
+  bookingStatus    BookingStatus @default(PENDING_CONFIRMATION)
+  guestNotes       String?       @db.Text
+  expiresAt        DateTime
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  homestayUnit HomestayUnit @relation(fields: [homestayUnitId], references: [id])
+  guest        User         @relation(fields: [guestId], references: [id])
+
+  @@map("bookings")
+}
+
+enum AppointmentStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+model ViewingAppointment {
+  id            String            @id @default(uuid())
+  propertyId    String
+  tenantId      String
+  tenantName    String
+  tenantPhone   String
+  scheduledDate DateTime          @db.Date
+  scheduledTime String
+  status        AppointmentStatus @default(PENDING)
+  notes         String?           @db.Text
+  createdAt     DateTime          @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenant   User     @relation(fields: [tenantId], references: [id])
+
+  @@map("viewing_appointments")
+}

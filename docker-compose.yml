@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------
+  # 1. Cơ sở dữ liệu chính: PostgreSQL 16 tích hợp sẵn PostGIS
+  # -------------------------------------------------------------
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: trotot_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-rental_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-rental_secret_2026}
+      POSTGRES_DB: ${DB_NAME:-trotot_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      # Lưu trữ dữ liệu vào ổ cứng để khi tắt/bật lại container không bị mất dữ liệu
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-rental_admin} -d ${DB_NAME:-trotot_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # -------------------------------------------------------------
+  # 2. Bộ nhớ đệm & Khóa phân tán: Redis 7
+  # -------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: trotot_redis
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secret_2026}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      # Lưu cache và hàng đợi (Queue) vào volume
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_secret_2026}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+# Khai báo các Volume lưu trữ bền vững trên máy tính
+volumes:
+  postgres_data:
+    name: trotot_postgres_data
+  redis_data:
+    name: trotot_redis_data
