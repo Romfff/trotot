@@ -2,6 +2,10 @@
 
 > **Mô hình kết hợp:** Đăng tin thuê trọ dài hạn (*Nhà Tốt / Chợ Tốt*) + Đặt phòng Homestay ngắn hạn trực tuyến (*Agoda / Airbnb*).
 
+> **Trạng thái repo (28/09/2026):** Hiện có tài liệu, chưa có ứng dụng chạy được. Đọc [Kế hoạch phát triển và bàn giao](07_PRODUCTION_DELIVERY_PLAN.md) trước khi triển khai: rà soát lỗi trong thiết kế cũ, phạm vi ra mắt **trọ + homestay cùng lúc**, phân việc backend/UX, milestone, Git/CI, kiểm thử và tiêu chí chạy trên máy khác. Các lệnh setup trong kế hoạch là đầu ra cần xây dựng, chưa phải hướng dẫn chạy ứng dụng hiện có.
+>
+> Tài liệu 01–06 bên dưới là thiết kế ban đầu. Các lựa chọn phiên bản, mẫu khóa Redis/webhook, địa chỉ hành chính và lộ trình 10 tuần cần được cập nhật theo kế hoạch mới trước khi dùng; chưa phải cam kết production.
+
 ---
 
 ## 1. TỔNG QUAN DỰ ÁN
@@ -31,13 +35,14 @@ Hệ thống tài liệu dự án được phân chia thành các file chuyên b
 
 | STT | File Tài Liệu | Nội Dung Chính | Phụ Trách Chính |
 |:---:|:---|:---|:---:|
-| 1 | [README.md](file:///d:/DuAn_ThueNha/README.md) | Tổng quan, Tech Stack, Kiến trúc, Quy ước Git/Coding | Toàn đội |
-| 2 | [01_PROJECT_REQUIREMENTS_SPEC.md](file:///d:/DuAn_ThueNha/01_PROJECT_REQUIREMENTS_SPEC.md) | Đặc tả nghiệp vụ (SRS), Phân hệ User, Luồng Trọ vs Homestay | Toàn đội |
-| 3 | [02_SYSTEM_ARCHITECTURE_DATABASE.md](file:///d:/DuAn_ThueNha/02_SYSTEM_ARCHITECTURE_DATABASE.md) | Kiến trúc kỹ thuật, ERD Database, Chống Double-Booking, PostGIS | Dev 1 |
-| 4 | [03_IMPLEMENTATION_ROADMAP_SPRINTS.md](file:///d:/DuAn_ThueNha/03_IMPLEMENTATION_ROADMAP_SPRINTS.md) | Lộ trình 10 tuần (5 Sprints), Milestones, KPI nghiệm thu | Toàn đội |
-| 5 | [04_DEV1_BACKEND_DEVOPS_PLAN.md](file:///d:/DuAn_ThueNha/04_DEV1_BACKEND_DEVOPS_PLAN.md) | Kế hoạch hành động chi tiết Dev 1 (Backend, Database, DevOps, Payment) | **Dev 1** |
-| 6 | [05_DEV2_FRONTEND_UIUX_PLAN.md](file:///d:/DuAn_ThueNha/05_DEV2_FRONTEND_UIUX_PLAN.md) | Kế hoạch hành động chi tiết Dev 2 (Next.js, UI/UX Mobile, Host Portal, Admin) | **Dev 2** |
-| 7 | [06_API_SPECS_AND_WORKFLOWS.md](file:///d:/DuAn_ThueNha/06_API_SPECS_AND_WORKFLOWS.md) | Đặc tả REST API, Webhook, State Machine, Luồng Realtime Socket | Dev 1 & Dev 2 |
+| 1 | [README.md](README.md) | Tổng quan và điều hướng tài liệu | Toàn đội |
+| 2 | [01_PROJECT_REQUIREMENTS_SPEC.md](01_PROJECT_REQUIREMENTS_SPEC.md) | Yêu cầu gốc: trọ và homestay | Toàn đội |
+| 3 | [02_SYSTEM_ARCHITECTURE_DATABASE.md](02_SYSTEM_ARCHITECTURE_DATABASE.md) | Kiến trúc và schema ban đầu; xem các điều chỉnh ở tài liệu 07 | Backend |
+| 4 | [03_IMPLEMENTATION_ROADMAP_SPRINTS.md](03_IMPLEMENTATION_ROADMAP_SPRINTS.md) | Lộ trình 10 tuần ban đầu, không dùng làm cam kết ra mắt | Toàn đội |
+| 5 | [04_DEV1_BACKEND_DEVOPS_PLAN.md](04_DEV1_BACKEND_DEVOPS_PLAN.md) | Kế hoạch backend ban đầu; mẫu booking/webhook cần sửa | Backend |
+| 6 | [05_DEV2_FRONTEND_UIUX_PLAN.md](05_DEV2_FRONTEND_UIUX_PLAN.md) | Màn hình và UX dự kiến ban đầu | UX + người triển khai frontend |
+| 7 | [06_API_SPECS_AND_WORKFLOWS.md](06_API_SPECS_AND_WORKFLOWS.md) | API bản phác thảo; cần chuẩn hóa trước triển khai | Toàn đội |
+| 8 | [07_PRODUCTION_DELIVERY_PLAN.md](07_PRODUCTION_DELIVERY_PLAN.md) | Kế hoạch triển khai sản phẩm thật, ra mắt chung, nghiệm thu, Git và bàn giao xuyên máy | Toàn đội |
 
 ---
 

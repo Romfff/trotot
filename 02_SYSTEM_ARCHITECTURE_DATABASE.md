@@ -1,6 +1,8 @@
 # THIẾT KẾ KIẾN TRÚC HỆ THỐNG & CƠ SỞ DỮ LIỆU
 ## HYBRID RENTAL PLATFORM (PHÒNG TRỌ & HOMESTAY)
 
+> Thiết kế ban đầu, chưa phải schema đã nghiệm thu. Trước khi triển khai, áp dụng các điều chỉnh về inventory DB, giao dịch tiền, địa chỉ và index tại [kế hoạch mới, mục 2–5](07_PRODUCTION_DELIVERY_PLAN.md). Không dựa riêng vào Redis lock để bảo đảm tồn phòng; các con số hiệu năng bên dưới chưa được đo.
+
 ---
 
 ## 1. TỔNG QUAN KIẾN TRÚC HỆ THỐNG (SYSTEM ARCHITECTURE)

@@ -1,6 +1,8 @@
 # ĐẶC TẢ YÊU CẦU NGHIỆP VỤ HỆ THỐNG (SRS)
 ## HYBRID RENTAL PLATFORM: PHÒNG TRỌ DÀI HẠN & HOMESTAY NGẮN HẠN
 
+> Yêu cầu gốc được giữ để truy nguyên. Xem [kế hoạch triển khai ngày 28/09/2026](07_PRODUCTION_DELIVERY_PLAN.md) để biết phạm vi ra mắt chung, thứ tự hoàn thiện toàn bộ tính năng và các quyết định nghiệp vụ còn cần chốt. Mô tả Redis lock trong tài liệu này chưa đủ để bảo đảm chống đặt trùng.
+
 ---
 
 ## 1. MỤC TIÊU DỰ ÁN & BÀI TOÁN KINH DOANH

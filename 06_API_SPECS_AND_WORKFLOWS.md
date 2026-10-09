@@ -1,6 +1,8 @@
 # ĐẶC TẢ GIAO TIẾP API & LUỒNG DỮ LIỆU LIÊN KẾT DEV 1 & DEV 2
 ## API CONTRACTS, WORKFLOWS & REALTIME SPECIFICATION
 
+> Đây là contract bản phác thảo, chưa đầy đủ để triển khai production. Chuẩn hóa state machine, endpoint, ownership Socket, request-to-book, refund và payout theo [kế hoạch mới, mục 5–6](07_PRODUCTION_DELIVERY_PLAN.md), sau đó xuất OpenAPI và client đồng bộ. Payload/chữ ký webhook phải theo provider thực tế, không dùng mẫu chung dưới đây như đặc tả của nhà cung cấp.
+
 ---
 
 ## 1. NGUYÊN TẮC THIẾT KẾ REST API

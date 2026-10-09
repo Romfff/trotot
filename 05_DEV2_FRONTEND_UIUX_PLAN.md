@@ -1,6 +1,8 @@
 # KẾ HOẠCH HÀNH ĐỘNG CHI TIẾT DÀNH CHO DEVELOPER 2
 ## VAI TRÒ: LEAD FRONTEND / UI-UX / CLIENT WEB & HOST PORTAL
 
+> Bản UX ban đầu. Phân vai hiện tại là một người backend, một người thiên UX và hỗ trợ code linh hoạt; xem [kế hoạch mới, mục 4, 6 và 8](07_PRODUCTION_DELIVERY_PLAN.md) để chọn phiên bản còn hỗ trợ, chốt contract, bổ sung trạng thái lỗi và giao người viết frontend. Không coi countdown hoặc Socket event là bằng chứng thanh toán đã hoàn tất.
+
 ---
 
 ## 1. MỤC TIÊU & TRÁCH NHIỆM CỐT LÕI

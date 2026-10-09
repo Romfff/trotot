@@ -1,6 +1,8 @@
 # KẾ HOẠCH HÀNH ĐỘNG CHI TIẾT DÀNH CHO DEVELOPER 1
 ## VAI TRÒ: LEAD BACKEND / DEVOPS / DATA & CORE ARCHITECTURE
 
+> **Không sao chép các mẫu booking/webhook bên dưới vào production.** Lock theo nguyên khoảng ngày không chặn khoảng giao nhau; đánh dấu webhook processed trước DB commit có thể làm mất lần xử lý khi retry. Xem [kế hoạch mới, mục 2 và 5](07_PRODUCTION_DELIVERY_PLAN.md) về inventory transaction, DB idempotency, xác thực tiền và outbox. Compose bên dưới chỉ là minh họa DB/Redis, chưa phải bộ chạy ứng dụng.
+
 ---
 
 ## 1. MỤC TIÊU & TRÁCH NHIỆM CỐT LÕI
