@@ -1,8 +1,39 @@
-.stitch-header { box-shadow: var(--shadow-sm); }
-.stitch-header .site-header-inner { padding-inline: 28px; }
-.stitch-header-explorer .site-header-inner { max-width: 1440px; }
-.stitch-header .stitch-account-trigger { width: 44px; height: 44px; padding: 0; border-radius: 50%; border-color: var(--line); background: var(--soft-green); color: var(--primary-dark); font-size: 16px; font-weight: 700; }
-.stitch-header .stitch-account-trigger:hover { background: var(--soft-green); }
+.stitch-header {
+  box-shadow: 0 1px 0 var(--rule);
+}
+.stitch-header .site-header-inner,
+.stitch-header-explorer .site-header-inner {
+  max-width: 1320px;
+  padding-inline: clamp(20px, 4vw, 44px);
+}
+.stitch-header .stitch-account-trigger {
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  background: var(--bd);
+  color: var(--on-brand);
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1;
+  flex-shrink: 0;
+  transform: none !important;
+  transition: background-color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.stitch-header .stitch-account-trigger::before {
+  display: none;
+}
+.stitch-header .stitch-account-trigger:hover:not(:disabled) {
+  background: var(--bm);
+  border-color: var(--bm);
+  color: var(--on-brand);
+}
+.stitch-header .stitch-account-trigger:active:not(:disabled) {
+  transform: none !important;
+}
 @media (max-width: 767px) {
   .stitch-header .site-header-inner { padding-inline: 16px; gap: 12px; }
   .stitch-header .nav-actions { gap: 8px; }

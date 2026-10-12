@@ -38,7 +38,7 @@ export function NearbySection({slug,initial}:{slug:string;initial?:NearbySnapsho
   <p className={styles.caption}>Khoảng cách đường thẳng từ ghim của chủ nhà, không phải quãng đường hoặc thời gian đi bộ.</p>
   {error&&<div role="alert" className="space-y-3 py-3"><p className="text-sm text-error">{error}</p><Button variant="secondary" onClick={retry}><RotateCw size={16} aria-hidden/>Thử lại</Button></div>}
   {!data&&busy&&<p className={styles.empty} role="status">Đang tải khu vực…</p>}
-  {data&&["UNAVAILABLE","PENDING"].includes(data.status)&&<p className={styles.empty}>{data.status==="PENDING"?"Dữ liệu khu vực đang được cập nhật.":"Chưa có dữ liệu khu vực."}</p>}
+  {data&&["UNAVAILABLE","PENDING"].includes(data.status)&&<div className="space-y-3"><Map center={data.center} items={[]} selected={selected} onSelect={setSelected}/><p className={styles.empty}>{data.status==="PENDING"?"Dữ liệu địa điểm xung quanh đang được cập nhật. Bạn vẫn có thể xem vị trí vệ tinh của ngôi nhà trên bản đồ.":"Chưa có danh sách địa điểm xung quanh, hiển thị vị trí vệ tinh của ngôi nhà."}</p></div>}
   {data&&data.groups.length>0&&<>
    <div className={styles.tabs} role="tablist" aria-label="Nhóm địa điểm">
     {data.groups.map((item,index)=><button type="button" role="tab" key={item.code} id={`${id}-${item.code}`} aria-controls={`${id}-panel`} aria-selected={active===item.code} tabIndex={active===item.code?0:-1}
@@ -60,7 +60,7 @@ export function NearbySection({slug,initial}:{slug:string;initial?:NearbySnapsho
     </div>
    </div>}
   </>}
-  <p className={styles.footer}><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a> · Dữ liệu có thể thiếu hoặc thay đổi.
+  <p className={styles.footer}>© Google Satellite &amp; Map Data · Dữ liệu địa điểm xung quanh tham khảo từ OpenStreetMap.
    {data?.updatedAt&&<> {data.stale?"Dữ liệu cũ — cập nhật gần nhất":"Cập nhật"}: {new Intl.DateTimeFormat("vi-VN",{timeZone:"Asia/Ho_Chi_Minh",dateStyle:"medium"}).format(new Date(data.updatedAt))}.</>}
   </p>
  </section>;

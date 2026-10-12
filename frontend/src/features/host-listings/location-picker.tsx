@@ -136,13 +136,36 @@ export function ListingLocationPicker(props: Props) {
         map.setMinZoom(overviewZoom(map));
         if (!point) fitOverview(map);
         mapRef.current = map;
-        // Reuse the project's OSM basemap, not a geocoder. Attribution stays visible.
-        const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19,
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors' });
+        // Satellite Hybrid basemap so hosts can pinpoint the exact rooftop and street of the property.
+        let loadedAnyTile = false;
+        let fallbackUsed = false;
+        const tiles = L.tileLayer("https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}&hl=vi", {
+          subdomains: ["0", "1", "2", "3"],
+          maxZoom: 20,
+          attribution: "&copy; Google Satellite &amp; Map Data",
+        });
         tilesRef.current = tiles;
-        tiles.on("tileerror", (event: import("leaflet").TileErrorEvent) => { if (!cancelled) { failedTiles.add(event.tile); setTileError(true); } });
-        const loaded = (event: import("leaflet").TileEvent) => { if (!cancelled) { failedTiles.delete(event.tile); setTileError(failedTiles.size > 0); } };
-        tiles.on("tileload", loaded); tiles.on("tileunload", loaded); tiles.addTo(map);
+        tiles.on("tileload", () => {
+          if (!cancelled) {
+            loadedAnyTile = true;
+            failedTiles.clear();
+            setTileError(false);
+          }
+        });
+        tiles.on("tileerror", (event: import("leaflet").TileErrorEvent) => {
+          if (cancelled) return;
+          failedTiles.add(event.tile);
+          if (!loadedAnyTile && failedTiles.size >= 4 && !fallbackUsed) {
+            fallbackUsed = true;
+            failedTiles.clear();
+            tiles.setUrl("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}");
+            return;
+          }
+          if (!loadedAnyTile && failedTiles.size >= 8) {
+            setTileError(true);
+          }
+        });
+        tiles.addTo(map);
         map.on("click", (event: import("leaflet").LeafletMouseEvent) => {
           if (cancelled || disabledRef.current) return;
           if (!provinceRef.current) { setMessage("Chọn tỉnh/thành phố trước khi đặt ghim trên bản đồ."); return; }

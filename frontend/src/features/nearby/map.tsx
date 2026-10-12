@@ -13,24 +13,31 @@ export default function NearbyMap({center,items,selected,onSelect}:{center:Nearb
  useEffect(()=>{
   if(!visible||!container.current)return;let disposed=false;let map:import("leaflet").Map|undefined;const pins=markers.current;
   void import("leaflet").then(L=>{
-   if(disposed||!container.current)return;
-   map=L.map(container.current,{scrollWheelZoom:false,keyboard:true,zoomControl:true}).setView([center.latitude,center.longitude],14);instance.current=map;
-   const tiles=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
-   tiles.on("tileerror",()=>{if(!disposed)setFailed(true);});
-   const label=document.createElement("span");label.textContent="Vị trí tin đăng";
-   L.circleMarker([center.latitude,center.longitude],{radius:9,color:"var(--primary)",fillOpacity:1}).bindTooltip(label,{permanent:true}).addTo(map);
+   if(disposed||!container.current||(container.current as {_leaflet_id?:number})._leaflet_id)return;
+   map=L.map(container.current,{scrollWheelZoom:true,keyboard:true,zoomControl:true,maxZoom:20}).setView([center.latitude,center.longitude],18);instance.current=map;
+   let loadedAny=false;let fallbackUsed=false;const failedTiles=new Set<HTMLElement>();
+   const tiles=L.tileLayer("https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}&hl=vi",{subdomains:["0","1","2","3"],maxZoom:20,attribution:"&copy; Google Satellite &amp; Map Data"}).addTo(map);
+   tiles.on("tileload",()=>{if(!disposed){loadedAny=true;failedTiles.clear();setFailed(false);}});
+   tiles.on("tileerror",(e:import("leaflet").TileErrorEvent)=>{
+    if(disposed)return;
+    failedTiles.add(e.tile);
+    if(!loadedAny&&failedTiles.size>=4&&!fallbackUsed){fallbackUsed=true;failedTiles.clear();tiles.setUrl("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}");return;}
+    if(!loadedAny&&failedTiles.size>=8)setFailed(true);
+   });
+   const label=document.createElement("span");label.textContent="Vị trí ngôi nhà";
+   L.circleMarker([center.latitude,center.longitude],{radius:10,color:"#ffffff",weight:2.5,fillColor:"#0284c7",fillOpacity:1}).bindTooltip(label,{permanent:true}).addTo(map);
    for(const item of items){const text=document.createElement("span");text.textContent=item.name;
-    const marker=L.circleMarker([item.point.latitude,item.point.longitude],{radius:6,color:"var(--foreground)",fillColor:"var(--surface,#fff)",fillOpacity:1}).bindTooltip(text).addTo(map!);
+    const marker=L.circleMarker([item.point.latitude,item.point.longitude],{radius:6,color:"#0a1b2a",fillColor:"#ffffff",fillOpacity:1}).bindTooltip(text).addTo(map!);
     marker.on("click",()=>select.current(item.id));pins.set(item.id,marker);
    }
-   if(items.length)map.fitBounds(L.latLngBounds([[center.latitude,center.longitude],...items.map(item=>[item.point.latitude,item.point.longitude] as [number,number])]),{padding:[28,28],maxZoom:15,animate:false});
+   if(items.length)map.fitBounds(L.latLngBounds([[center.latitude,center.longitude],...items.map(item=>[item.point.latitude,item.point.longitude] as [number,number])]),{padding:[28,28],maxZoom:17,animate:false});
   }).catch(()=>{if(!disposed)setFailed(true);});
   return()=>{disposed=true;map?.remove();instance.current=null;pins.clear();};
  },[center.latitude,center.longitude,items,visible,retry]);
  useEffect(()=>{const marker=selected?markers.current.get(selected):undefined;if(!marker||!instance.current)return;
   marker.openTooltip();instance.current.panTo(marker.getLatLng(),{animate:!window.matchMedia("(prefers-reduced-motion: reduce)").matches});
  },[selected]);
- return <div className={styles.map}><div ref={container} className={styles.mapCanvas} role="region" aria-label="Bản đồ vị trí tin và địa điểm xung quanh. Có thể chọn địa điểm bằng danh sách bên cạnh."/>
+ return <div className={styles.map}><div ref={container} className={styles.mapCanvas} role="region" aria-label="Bản đồ vệ tinh vị trí ngôi nhà và địa điểm xung quanh."/>
   {failed&&<div className={styles.mapWarning} role="status"><p>Chưa tải được bản đồ. Danh sách vẫn dùng được.</p><Button variant="secondary" onClick={()=>{setFailed(false);setRetry(n=>n+1);}}>Thử lại bản đồ</Button></div>}
  </div>;
 }

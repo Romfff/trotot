@@ -16,7 +16,12 @@ import { NotificationBell } from "./notification-bell";
 import "./stitch-shell.css";
 
 function Brand() {
-  return <Link href="/" className="wordmark" aria-label="Trotot — trang chủ">tro<span>tot</span></Link>;
+  return (
+    <Link href="/" className="wordmark" aria-label="Trotot — trang chủ">
+      <div>tro<span>tot</span></div>
+      <small className="wordmark-tag">VN · Living &amp; Stay</small>
+    </Link>
+  );
 }
 
 function AccountAction({ compact = false }: { compact?: boolean }) {
@@ -128,13 +133,54 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       <div className="site-header-inner">
         <Brand />
         <nav className="main-nav" aria-label="Điều hướng chính"><NavItems showPosting={false} /></nav>
-        <div className="nav-actions"><Link href="/host/properties/create" className="button stitch-posting">Đăng tin</Link><NotificationBell /><AccountAction compact /></div>
+        <div className="nav-actions"><Link href="/host/properties/create" className="button stitch-posting"><span>Đăng tin</span><span className="btn__arrow" aria-hidden="true">→</span></Link><NotificationBell /><AccountAction compact /></div>
       </div>
     </header>
     <main className={isAuthRoute ? "page-main page-main-auth" : "page-main"}>
-      {children}
+      <div key={pathname} className="page-transition-stage">
+        {children}
+      </div>
     </main>
-    <footer className="site-footer">Trotot. Nền tảng thuê trọ minh bạch và đặt homestay theo đêm.</footer>
+    <footer className="site-footer">
+      <div className="site-footer-inner">
+        <div className="site-footer-grid">
+          <div>
+            <Link href="/" className="site-footer-brand">tro<span>tot</span></Link>
+            <p className="site-footer-blurb">
+              Nền tảng kết nối không gian sống minh bạch: từ phòng trọ dài hạn dự toán chi phí rõ ràng đến homestay nghỉ dưỡng đặt theo đêm.
+            </p>
+          </div>
+          <div className="site-footer-col">
+            <h4>Khám phá</h4>
+            <ul>
+              <li><Link href="/thue-phong-tro">Thuê phòng trọ dài hạn</Link></li>
+              <li><Link href="/homestay">Homestay theo đêm</Link></li>
+              <li><Link href="/bookings">Quản lý chuyến đi</Link></li>
+            </ul>
+          </div>
+          <div className="site-footer-col">
+            <h4>Dành cho Chủ nhà</h4>
+            <ul>
+              <li><Link href="/host/properties/create">Đăng tin phòng trọ</Link></li>
+              <li><Link href="/host/homestays">Quản lý Homestay &amp; Lịch giá</Link></li>
+              <li><Link href="/host/finance">Đối soát &amp; Sổ cái doanh thu</Link></li>
+            </ul>
+          </div>
+          <div className="site-footer-col">
+            <h4>Tiêu chuẩn Minh bạch</h4>
+            <ul>
+              <li><Link href="/thue-phong-tro">Dự toán điện · nước · dịch vụ</Link></li>
+              <li><Link href="/homestay">Báo giá ký số &amp; Giữ chỗ 3 lớp</Link></li>
+              <li><Link href="/account">Bảo mật tài khoản &amp; Xác thực</Link></li>
+            </ul>
+          </div>
+        </div>
+        <div className="site-footer-bottom">
+          <span>© 2026 TroTot Platform · Vietnam Living &amp; Stay</span>
+          <span>Trotot. Nền tảng thuê trọ minh bạch và đặt homestay theo đêm.</span>
+        </div>
+      </div>
+    </footer>
     <BottomNavigation key={user?.id || "guest"} />
   </>;
 }

@@ -1,28 +1,94 @@
-.stitch-guest-page { max-width: 1120px; padding: 32px 28px 56px; gap: 24px; }
-.stitch-guest-page > div:first-child h1 { font-size: 28px; line-height: 35px; }
-.stitch-guest-page .s3-card { padding: 24px; }
-.stitch-guest-page .s3-card h2 { font-size: 20px; line-height: 28px; }
-.stitch-guest-page .s3-list > li { box-shadow: var(--shadow-sm); padding: 20px; }
-.stitch-guest-page .s3-list h3 { font-size: 17px; line-height: 24px; }
+.stitch-guest-page { max-width: 1240px; padding: 40px 28px 68px; gap: 28px; }
+.stitch-guest-page > div:first-child h1 {
+  font-family: var(--serif);
+  font-size: clamp(30px, 3.6vw, 44px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.stitch-guest-page .s3-card { padding: 28px; border-radius: 2px; }
+.stitch-guest-page .s3-card h2 {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+.stitch-guest-page .s3-list > li { box-shadow: var(--shadow-sm); padding: 22px; border-radius: 2px; }
+.stitch-guest-page .s3-list h3 {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
 .stitch-guest-page .s3-price { gap: 12px; }
 .stitch-guest-page .s3-price > div { flex-wrap: wrap; }
-.stitch-guest-page .s3-price dd { white-space: normal; overflow-wrap: anywhere; }
-.stitch-guest-page .s3-price-total { padding: 16px !important; background: var(--soft-green); border: 1px solid var(--line); border-radius: 8px; }
-.stitch-guest-page .s3-price-total dd { font-size: 24px; line-height: 30px; }
-.stitch-workflow-page { max-width: 1040px; padding: 32px 28px 56px; }
-.stitch-workflow-page > h1, .stitch-workflow-page > header h1 { font-size: 28px; line-height: 35px; font-weight: 700; }
-.stitch-workflow-page > nav:not([aria-label*="Phân trang"]) { padding: 8px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
-.stitch-workflow-page > section { box-shadow: var(--shadow-sm); padding: 24px; }
-.stitch-workflow-page section h2 { font-size: 20px; line-height: 28px; }
-.stitch-payment-page { max-width: 720px; }
-.stitch-guest-page.stitch-homestay-search .s3-list > li.homestay-result-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 16px; min-width: 0; }
+.stitch-guest-page .s3-price dd {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-family: var(--sans);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.stitch-guest-page .s3-price-total {
+  padding: 16px !important;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+.stitch-guest-page .s3-price-total dd {
+  font-family: var(--sans);
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+.stitch-workflow-page { max-width: 1120px; padding: 40px 28px 64px; }
+.stitch-workflow-page > h1, .stitch-workflow-page > header h1 {
+  font-family: var(--serif);
+  font-size: clamp(30px, 3.5vw, 42px);
+  line-height: 1.12;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.stitch-workflow-page > nav:not([aria-label*="Phân trang"]) {
+  padding: 10px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: var(--surface);
+}
+.stitch-workflow-page > section { box-shadow: var(--shadow-sm); padding: 26px; border-radius: 2px; }
+.stitch-workflow-page section h2 {
+  font-family: var(--serif);
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.stitch-payment-page { max-width: 760px; }
+.stitch-guest-page.stitch-homestay-search .s3-list > li.homestay-result-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; padding: 20px; min-width: 0; }
 .stitch-homestay-search .homestay-result-card > div { min-width: 0; }
-.stitch-homestay-search .homestay-result-cover { width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 8px; background: var(--soft-green); }
-.stitch-homestay-search .homestay-result-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 14px; }
+.stitch-homestay-search .homestay-result-cover { width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 2px; background: var(--paper-2); border: 1px solid var(--rule); }
+.stitch-homestay-search .homestay-result-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--ink-3); font-size: 14px; }
 .stitch-homestay-search .homestay-result-card h3, .stitch-homestay-search .homestay-result-card p { overflow-wrap: anywhere; }
 .stitch-homestay-search .homestay-result-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
-.stitch-homestay-search .homestay-result-price { min-width: 0; }
-.stitch-homestay-search .homestay-result-amount { white-space: nowrap; }
+.stitch-homestay-search .homestay-result-price {
+  min-width: 0;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.stitch-homestay-search .homestay-result-amount {
+  white-space: nowrap;
+  font-family: var(--sans);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--bm);
+}
 .stitch-homestay-search .homestay-result-actions > a { flex-shrink: 0; }
 @media (max-width: 639px) {
   .stitch-homestay-search .homestay-search-pagination { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; }
@@ -30,18 +96,18 @@
   .stitch-homestay-search .homestay-search-pagination > span { padding-inline: 0; font-size: 12px; }
 }
 @media (min-width: 1024px) {
-  .stitch-guest-page.stitch-homestay-search .s3-list > li.homestay-result-card { grid-template-columns: 220px minmax(0, 1fr) minmax(180px, max-content); gap: 24px; }
+  .stitch-guest-page.stitch-homestay-search .s3-list > li.homestay-result-card { grid-template-columns: 240px minmax(0, 1fr) minmax(190px, max-content); gap: 26px; }
   .stitch-homestay-search .homestay-result-cover { aspect-ratio: 4 / 3; align-self: start; }
   .stitch-homestay-search .homestay-result-actions { flex-direction: column; align-items: flex-end; justify-content: flex-end; text-align: right; }
 }
 @media (max-width: 767px) {
-  .stitch-guest-page, .stitch-workflow-page { padding: 24px 16px 40px; }
-  .stitch-guest-page > div:first-child h1, .stitch-workflow-page > h1, .stitch-workflow-page > header h1 { font-size: 24px; line-height: 30px; }
+  .stitch-guest-page, .stitch-workflow-page { padding: 24px 16px 44px; }
+  .stitch-guest-page > div:first-child h1, .stitch-workflow-page > h1, .stitch-workflow-page > header h1 { font-size: 28px; line-height: 1.15; }
   .stitch-guest-page .s3-card, .stitch-workflow-page > section { padding: 20px; }
 }
-.stitch-guest-page.stitch-homestay-detail { max-width: 1240px; width: 100%; grid-template-columns: minmax(0, 1fr); }
+.stitch-guest-page.stitch-homestay-detail { max-width: 1280px; width: 100%; grid-template-columns: minmax(0, 1fr); }
 .stitch-homestay-detail > div { min-width: 0; }
-.stitch-homestay-detail > nav[aria-label="Đường dẫn trang"] { min-width: 0; }
+.stitch-homestay-detail > nav[aria-label="Đường dẫn trang"] { min-width: 0; font: 500 10.5px/1.5 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; }
 .stitch-homestay-detail > nav[aria-label="Đường dẫn trang"] > a { flex-shrink: 0; white-space: nowrap; }
 .stitch-homestay-detail > nav[aria-label="Đường dẫn trang"] > span:last-child { min-width: 0; }
 .stitch-homestay-detail .stitch-booking-layout > div { min-width: 0; }
@@ -50,7 +116,7 @@
 .stitch-homestay-detail .homestay-booking-sidebar { grid-area: booking; }
 .stitch-homestay-detail .homestay-detail-calendar { grid-area: calendar; }
 .stitch-homestay-detail .s3-calendar .s3-day { min-height: 44px; }
-.stitch-homestay-detail .s3-calendar small { font-size: 12px; line-height: 1.5; white-space: nowrap; overflow-wrap: normal; }
+.stitch-homestay-detail .s3-calendar small { font-size: 11px; line-height: 1.4; white-space: nowrap; overflow-wrap: normal; }
 .stitch-homestay-detail .homestay-booking-sidebar .s3-fields { gap: 16px; }
 .stitch-homestay-detail .homestay-booking-sidebar form > button { width: 100%; }
 .stitch-homestay-detail .homestay-booking-sidebar .s3-price { font-size: 14px; }
@@ -66,6 +132,6 @@
 @media (min-width: 1024px) {
   .stitch-homestay-detail .stitch-booking-layout { grid-template-areas: "info booking" "calendar booking"; }
   .stitch-homestay-detail [aria-label="Hình ảnh phòng"] > div:first-child > div:first-child,
-  .stitch-homestay-detail [aria-label="Hình ảnh phòng"] > div:first-child > div:nth-child(2) { height: 400px; }
-  .stitch-homestay-detail [aria-label="Hình ảnh phòng"]:not(:has(img)) { min-height: 400px; }
+  .stitch-homestay-detail [aria-label="Hình ảnh phòng"] > div:first-child > div:nth-child(2) { height: 420px; }
+  .stitch-homestay-detail [aria-label="Hình ảnh phòng"]:not(:has(img)) { min-height: 420px; }
 }

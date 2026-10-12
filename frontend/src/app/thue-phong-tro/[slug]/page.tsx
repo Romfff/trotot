@@ -9,6 +9,7 @@ import { CostEstimate } from "@/components/listing/CostEstimate";
 import { AppointmentRequest } from "@/features/appointments/screens";
 import { ListingGallery } from "@/components/listing/listing-gallery";
 import { ListingContact } from "@/components/listing/listing-contact";
+import { PropertySatelliteMap } from "@/components/listing/PropertySatelliteMap";
 import { ChatLauncher } from "@/features/chat/chat";
 import { Suspense } from "react";
 import { NearbyServer } from "@/features/nearby/server";
@@ -173,6 +174,9 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               )}
             </section>
           )}
+
+          <PropertySatelliteMap room={room} address={address} />
+
           <Suspense fallback={null}>
             <NearbyServer slug={slug} />
           </Suspense>

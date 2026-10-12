@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ScrollReveal, useProgressiveScroll } from "@/components/ui/scroll-reveal";
 import { useAuthStore } from "@/stores/auth-store";
 import { ApiError } from "@/lib/auth-types";
 import { homestaysApi, type Booking, type Calendar, type Price, type Quote, type Stay } from "@/lib/api/homestays";
@@ -229,11 +230,21 @@ const emptyStay: Stay = { unitId: "", checkIn: "", checkOut: "", adults: 1, chil
 
 function HomestayCover({ url, title }: { url: string | null; title: string }) {
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   return (
     <div className="homestay-result-cover">
       {url && !failed ? (
-        <Image src={url} alt={listingDisplayTitle(title)} unoptimized width={640} height={480}
-          onError={() => setFailed(true)} className="h-full w-full object-cover" />
+        <Image
+          src={url}
+          alt={listingDisplayTitle(title)}
+          unoptimized
+          width={640}
+          height={480}
+          loading="lazy"
+          onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
+          className={`h-full w-full object-cover transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
+        />
       ) : (
         <div className="homestay-result-placeholder">
           <Camera className="size-6" aria-hidden="true" /><span>Chưa có ảnh</span>
@@ -259,8 +270,13 @@ export function HomestaySearch() {
     queryKey: ["homestay-search", filters],
     meta: { public: true },
     queryFn: ({ signal }) => homestaysApi.search(filters, signal),
+    placeholderData: (prev) => prev,
+    staleTime: 60_000,
     retry: false,
   });
+
+  const units = results.data?.data ?? [];
+  const { visibleItems: visibleUnits, hasMoreToReveal, sentinelRef } = useProgressiveScroll(units, 5);
 
   function search(e: FormEvent) {
     e.preventDefault();
@@ -343,10 +359,10 @@ export function HomestaySearch() {
           </div>
 
           <ul className="s3-list">
-            {results.data.data.map((unit) => (
+            {visibleUnits.map((unit, idx) => (
               <li key={unit.id} className="homestay-result-card hover:border-brand transition-colors">
                 <HomestayCover key={homestayCoverUrl(unit.media) || "empty"} url={homestayCoverUrl(unit.media)} title={unit.title} />
-                <div className="min-w-0 flex-1 space-y-2">
+                <ScrollReveal delayMs={(idx % 5) * 60} className="min-w-0 flex-1 space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     {unit.instantBook ? (
                       <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -381,11 +397,10 @@ export function HomestaySearch() {
                     {unit.bedrooms > 0 && <span>· {unit.bedrooms} PN</span>}
                     {unit.bathrooms > 0 && <span>· {unit.bathrooms} PT</span>}
                   </div>
-
-                </div>
+                </ScrollReveal>
 
                 <div className="homestay-result-actions">
-                  <p className="homestay-result-price text-brand font-bold text-base">
+                  <p className="homestay-result-price">
                     Từ <span className="homestay-result-amount">{currency.format(unit.basePricePerNight)} đ</span> <span className="text-xs font-normal text-gray-600">/ đêm</span>
                   </p>
                   <Link className="button button-sm inline-flex items-center gap-1" href={`/homestay/${unit.slug}`}>
@@ -396,6 +411,12 @@ export function HomestaySearch() {
               </li>
             ))}
           </ul>
+
+          {hasMoreToReveal && (
+            <div ref={sentinelRef} className="py-5 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+              Đang tải thêm homestay khi cuộn…
+            </div>
+          )}
 
           {!results.data.data.length && (
             <div className="s3-state py-12">

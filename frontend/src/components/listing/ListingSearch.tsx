@@ -23,6 +23,7 @@ import RoomCard from "@/components/RoomCard";
 import { PRESET_LOCATIONS } from "@/lib/listing-locations";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { ScrollReveal, useProgressiveScroll } from "@/components/ui/scroll-reveal";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 // Dynamic import Leaflet map to prevent SSR issues
@@ -185,10 +186,12 @@ function ThuePhongTroContent({ initialSnapshot }: { initialSnapshot: ListingSear
     queryFn: () => listingsApi.search(apiSearchParams),
     initialData: isInitialQuery ? initialSnapshot.result : undefined,
     initialDataUpdatedAt: isInitialQuery ? initialSnapshot.updatedAt : undefined,
-    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+    staleTime: 60_000,
   });
 
   const rooms = useMemo(() => listingsResult?.data ?? [], [listingsResult?.data]);
+  const { visibleItems: visibleRooms, hasMoreToReveal, sentinelRef } = useProgressiveScroll(rooms, 6);
   const meta = listingsResult?.meta ?? { page: 1, limit: 20, total: 0, totalPages: 0 };
 
   // Handler: toggle amenity
@@ -532,8 +535,8 @@ function ThuePhongTroContent({ initialSnapshot }: { initialSnapshot: ListingSear
           {!isLoading && !isError && rooms.length > 0 && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {rooms.map((room) => (
-                  <div key={room.id} className="h-full min-w-0">
+                {visibleRooms.map((room, idx) => (
+                  <ScrollReveal key={room.id} delayMs={(idx % 6) * 60} className="h-full min-w-0">
                     <RoomCard
                       room={room}
                       appearance="search"
@@ -541,9 +544,14 @@ function ThuePhongTroContent({ initialSnapshot }: { initialSnapshot: ListingSear
                       onMouseEnter={() => setSelectedRoomId(room.id)}
                       onMouseLeave={() => setSelectedRoomId(null)}
                     />
-                  </div>
+                  </ScrollReveal>
                 ))}
               </div>
+              {hasMoreToReveal && (
+                <div ref={sentinelRef} className="py-6 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+                  Đang tải thêm phòng khi cuộn…
+                </div>
+              )}
 
               {/* Phân trang */}
               {meta.totalPages > 1 && (

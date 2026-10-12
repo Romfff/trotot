@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
-import { Camera, MapPin, Ruler, ArrowRight } from "lucide-react";
+import { Camera, MapPin, Ruler } from "lucide-react";
 import type { PublicListingItem } from "@/types/listing";
 import type { RoomItem } from "@/lib/data";
 import { httpMediaUrl, listingDetailHref, listingDisplayTitle } from "@/lib/listing-links";
@@ -37,8 +37,8 @@ export default function RoomCard({
   const area = isReal ? room.areaSqm : room.area;
   const isAvailable = isReal ? room.isAvailable : true;
   const [failedImage, setFailedImage] = useState<string | null>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Format location label: "Phường X" or "Phường X, Quận Y"
   const locationLabel = isReal
     ? [room.ward?.name, room.ward?.province?.name].filter(Boolean).join(", ") || room.addressDetail
     : [room.ward, room.district].filter(Boolean).join(", ") || room.address;
@@ -53,13 +53,15 @@ export default function RoomCard({
     ? `Cách ${room.km} km`
     : null;
 
-  const firstImageUrl = httpMediaUrl(isReal
-    ? room.images && room.images.length > 0
-      ? room.images[0].url
+  const firstImageUrl = httpMediaUrl(
+    isReal
+      ? room.images && room.images.length > 0
+        ? room.images[0].url
+        : null
+      : room.images && room.images.length > 0
+      ? room.images[0]
       : null
-    : room.images && room.images.length > 0
-    ? room.images[0]
-    : null);
+  );
 
   const href = isReal
     ? room.slug
@@ -72,12 +74,12 @@ export default function RoomCard({
       href={href}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`group bg-white border rounded-xl p-3 h-full flex flex-col transition-colors duration-150 shadow-sm ${
-        highlighted ? "border-brand ring-1 ring-brand" : "border-gray-200 hover:border-brand"
+      className={`group pcard-lift h-full flex flex-col ${
+        highlighted ? "border-brand ring-1 ring-brand" : ""
       }`}
     >
-      {/* 4:3 Aspect Ratio Image */}
-      <div className="aspect-[4/3] w-full bg-bg rounded-lg border border-gray-200 relative overflow-hidden mb-3 shrink-0">
+      {/* 4:3 Editorial Aspect Ratio Image */}
+      <div className="aspect-[4/3] w-full bg-brand-tint relative overflow-hidden shrink-0 border-b border-gray-200">
         {firstImageUrl && firstImageUrl !== failedImage ? (
           <Image
             unoptimized
@@ -86,8 +88,11 @@ export default function RoomCard({
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
             src={firstImageUrl}
             alt={listingDisplayTitle(room.title)}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            className={`w-full h-full object-cover transition-[transform,opacity] duration-700 ease-out group-hover:scale-[1.04] ${
+              imageLoaded ? "opacity-100" : "opacity-0"
+            }`}
             loading="lazy"
+            onLoad={() => setImageLoaded(true)}
             onError={() => setFailedImage(firstImageUrl)}
           />
         ) : (
@@ -97,55 +102,77 @@ export default function RoomCard({
           </div>
         )}
         {!isAvailable && (
-          <div className="absolute inset-0 bg-ink/30 flex items-center justify-center">
-            <span className="bg-white text-ink text-[12px] font-medium px-3 py-1 rounded-full border border-gray-200">Đã cho thuê</span>
+          <div className="absolute inset-0 bg-ink/45 flex items-center justify-center">
+            <span className="bg-white text-ink mono-label px-3 py-1.5 border border-gray-200">Đã cho thuê</span>
           </div>
         )}
+        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 pointer-events-none">
+          <span className="bg-white/95 backdrop-blur-xs text-ink px-2.5 py-1 border border-gray-200 font-mono text-[10px] font-medium uppercase tracking-[0.14em]">
+            {area} m²
+          </span>
+          {distanceText && (
+            <span className="bg-[#0a1b2a]/90 text-[#eef2f6] px-2.5 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.12em]">
+              {distanceText}
+            </span>
+          )}
+        </div>
         {room.images && room.images.length > 1 && (
-          <div className="absolute bottom-2 right-2 bg-foreground/75 text-white text-[12px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1 backdrop-blur-xs pointer-events-none">
-            <Camera className="w-3.5 h-3.5" aria-hidden="true" />
+          <div className="absolute bottom-2.5 right-2.5 bg-[#0a1b2a]/80 text-[#eef2f6] font-mono text-[10.5px] tracking-wider uppercase px-2 py-0.5 flex items-center gap-1 backdrop-blur-xs pointer-events-none">
+            <Camera className="w-3 h-3" aria-hidden="true" />
             <span>{room.images.length} ảnh</span>
           </div>
         )}
       </div>
 
-      {/* Card Content */}
-      <div className="flex-1 flex flex-col">
-        {distanceText && (
-          <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-            {distanceText && (
-              <span className="inline-block bg-bg text-muted text-[12px] px-2 py-0.5 rounded border border-gray-200">
-                {distanceText}
-              </span>
-            )}
+      {/* Editorial Card Body */}
+      <div className="flex-1 flex flex-col p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-1 mb-1.5">
+          <div className="font-sans text-[15px] font-bold tabular-nums tracking-[-0.01em] text-brand">
+            {formatVND(price)} <span className="text-[12px] text-muted font-normal">/ tháng</span>
           </div>
-        )}
-
-        {/* Price: 17px / 700 */}
-        <div className="flex flex-wrap items-baseline justify-between gap-1">
-        <div className={`text-[17px] font-bold tracking-tight ${appearance === "search" ? "text-brand" : "text-ink"}`}>
-          {formatVND(price)}
-          <span className="text-[13px] font-normal text-muted ml-1">/ tháng</span>
-        </div>
-        {appearance === "search" && <span className="text-[12px] font-medium bg-brand-tint text-ink px-1.5 py-0.5 rounded">{area} m²</span>}
         </div>
 
-        {/* Title: max 2 lines with group hover */}
-        <h3 className={`text-[14px] font-semibold text-ink line-clamp-2 break-words mt-1 leading-snug group-hover:text-brand transition-colors ${appearance === "home" ? "min-h-[40px]" : ""}`}>
+        <h3
+          className={`font-serif text-[22px] font-medium text-ink line-clamp-2 break-words leading-[1.18] tracking-[-0.015em] group-hover:text-brand transition-colors ${
+            appearance === "home" ? "min-h-[52px]" : ""
+          }`}
+        >
           {listingDisplayTitle(room.title)}
         </h3>
 
-        {/* Subtitle: "28 m² · Phường X", min 13px, high contrast */}
-        <div className={`flex items-start gap-1.5 text-[12px] text-muted ${appearance === "home" ? "mt-auto pt-2 border-t border-gray-200" : "mt-2"}`}>
-          {appearance === "search" ? <MapPin size={15} className="shrink-0 mt-0.5" aria-hidden="true" /> : <Ruler size={15} className="shrink-0 mt-0.5" aria-hidden="true" />}
-          <span className="line-clamp-1 break-words">{appearance === "home" && <>{area} m² · </>}{locationLabel}</span>
+        <div
+          className={`flex items-start gap-1.5 text-[13px] text-gray-600 ${
+            appearance === "home" ? "mt-3 pt-3 border-t border-gray-200" : "mt-2.5"
+          }`}
+        >
+          {appearance === "search" ? (
+            <MapPin size={14} className="shrink-0 mt-1 text-muted" aria-hidden="true" />
+          ) : (
+            <Ruler size={14} className="shrink-0 mt-1 text-muted" aria-hidden="true" />
+          )}
+          <span className="line-clamp-1 break-words">
+            {appearance === "home" && <>{area} m² · </>}
+            {locationLabel}
+          </span>
         </div>
-        {appearance === "search" && isReal && room.amenities.length > 0 && <div className="flex flex-wrap gap-1 mt-3">
-          {room.amenities.map(amenity => <span key={amenity.id} className="text-[11px] text-muted bg-bg border border-gray-200 rounded px-2 py-0.5 break-words">{amenity.name}</span>)}
-        </div>}
-        {appearance === "search" && <div className="mt-3 pt-2 border-t border-gray-200 flex justify-end text-[12px] font-medium text-brand gap-1 items-center">
-          Xem chi tiết <ArrowRight size={14} aria-hidden="true" />
-        </div>}
+
+        {appearance === "search" && isReal && room.amenities.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {room.amenities.map((amenity) => (
+              <span
+                key={amenity.id}
+                className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted bg-brand-tint border border-gray-200 px-2 py-0.5 break-words"
+              >
+                {amenity.name}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-auto pt-4 flex items-center justify-between font-mono text-[10.5px] font-medium uppercase tracking-[0.14em] text-brand">
+          <span>Xem chi tiết</span>
+          <span className="btn__arrow" aria-hidden="true">→</span>
+        </div>
       </div>
     </Link>
   );
