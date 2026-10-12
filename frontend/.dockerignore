@@ -1,0 +1,14 @@
+*
+!package.json
+!package-lock.json
+!next.config.ts
+!tsconfig.json
+!postcss.config.mjs
+!eslint.config.mjs
+!src/
+!src/**
+!public/
+!public/**
+!tests/
+!tests/**
+!vitest.config.mts

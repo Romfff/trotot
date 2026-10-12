@@ -1,0 +1,50 @@
+# S5-09: candidate for a single Ubuntu edge, NOT enabled/deployed.
+# Replace trotot.example and certificate paths only after domain/hosting approval.
+# Bind API/web to loopback; block public DB/Redis/API ports with the host firewall.
+map $http_upgrade $connection_upgrade { default upgrade; '' close; }
+server {
+    listen 80 default_server;
+    server_name _;
+    return 444;
+}
+server {
+    listen 80;
+    server_name trotot.example;
+    location /.well-known/acme-challenge/ { root /var/www/acme; }
+    location / { return 308 https://trotot.example$request_uri; }
+}
+server {
+    listen 443 ssl;
+    server_name trotot.example;
+    ssl_certificate /etc/letsencrypt/live/trotot.example/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/trotot.example/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    access_log off;
+    error_log /var/log/nginx/trotot-error.log warn;
+    client_max_body_size 100m;
+    proxy_http_version 1.1;
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 60s;
+    proxy_send_timeout 60s;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    # This is the first trusted edge, NOT a Cloudflare/LB configuration.
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Trotot-Edge-IP $remote_addr;
+    proxy_set_header X-Trotot-Proxy-Signature '';
+    proxy_set_header X-Trotot-Proxy-Timestamp '';
+    proxy_set_header X-Trotot-Client-IP '';
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    location /socket.io/ {
+        proxy_buffering off;
+        proxy_read_timeout 75s;
+        proxy_pass http://127.0.0.1:5000;
+    }
+    location /api/v1/ { proxy_pass http://127.0.0.1:5000; }
+    # Swagger is not published on the external edge by default.
+    location /api/docs { return 404; }
+    location / { proxy_pass http://127.0.0.1:3000; }
+}

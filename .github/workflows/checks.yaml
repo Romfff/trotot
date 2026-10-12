@@ -1,0 +1,153 @@
+name: Test and build
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.15.0'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npm run typecheck
+  backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      NODE_ENV: test
+      OTP_PROVIDER: mock
+      DATABASE_URL: postgresql://ci:ci-local-only@127.0.0.1:5432/ci?schema=public
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ci-redis-local-only
+      JWT_ACCESS_SECRET: ci-local-only-access-secret-at-least-32-characters
+      JWT_REFRESH_SECRET: ci-local-only-refresh-secret-at-least-32-characters
+      BFF_PROXY_SECRET: ci-local-only-proxy-secret-at-least-32-characters
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: ci
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci-local-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U ci -d ci"
+          --health-interval 3s --health-timeout 3s --health-retries 30
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        # Service commands are not configurable here. Require auth via a runner exec before tests.
+        options: --health-cmd "redis-cli -a ci-redis-local-only --no-auth-warning ping" --health-interval 3s --health-timeout 3s --health-retries 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.15.0'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Configure CI-only Redis authentication
+        run: docker exec "${{ job.services.redis.id }}" redis-cli CONFIG SET requirepass "$REDIS_PASSWORD"
+      - run: npm ci --no-audit --no-fund
+      - run: npm run db:generate
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - name: Enforce 90 percent Hold and Availability unit coverage
+        run: npm run test:booking:unit:coverage
+      - name: Install frontend for real Auth BFF integration
+        working-directory: frontend
+        run: npm ci --no-audit --no-fund
+      - name: Build frontend for real Auth BFF integration
+        working-directory: frontend
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: npm run build
+      - run: npm run test:integration
+      - run: npm run test:listings:integration
+      - name: Enforce 90 percent Hold and Availability coverage with real DB
+        run: npm run test:booking:coverage
+  sprint5-database:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      NODE_ENV: test
+      OTP_PROVIDER: mock
+      DATABASE_URL: postgresql://ci:ci-local-only@127.0.0.1:58491/ci?schema=public
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: '58492'
+      REDIS_PASSWORD: ci-redis-local-only
+      JWT_ACCESS_SECRET: ci-local-only-access-secret-at-least-32-characters
+      JWT_REFRESH_SECRET: ci-local-only-refresh-secret-at-least-32-characters
+      BFF_PROXY_SECRET: ci-local-only-proxy-secret-at-least-32-characters
+      REVIEWS_INTEGRATION: '1'
+      CHAT_INTEGRATION: '1'
+      FINANCE_INTEGRATION: '1'
+      LISTINGS_INTEGRATION: '1'
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: ci
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci-local-only
+        ports: ['58491:5432']
+        options: >-
+          --health-cmd "pg_isready -U ci -d ci"
+          --health-interval 3s --health-timeout 3s --health-retries 30
+      redis:
+        image: redis:7-alpine
+        ports: ['58492:6379']
+        options: --health-cmd "redis-cli ping" --health-interval 3s --health-timeout 3s --health-retries 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.15.0'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Configure CI-only Redis authentication
+        run: docker exec "${{ job.services.redis.id }}" redis-cli CONFIG SET requirepass "$REDIS_PASSWORD"
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      # Serial suites use different UUID databases. Never use application secrets.
+      # Browser/provider/VPS tests are not claimed by this API/DB job.
+      - run: npx vitest run test/reviews.integration.spec.ts --reporter=dot
+      - run: npx vitest run test/chat.integration.spec.ts --reporter=dot
+      - run: npx vitest run test/finance-journal.integration.spec.ts --reporter=dot
+      - name: Public search cache privacy, concurrency and rollback
+        run: npx vitest run test/listings.integration.spec.ts -t 'S5 public search|S5 search coalesces|S5 a write' --reporter=dot

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic converter fixture only. Never import into application data. -->
+<osm version="0.6" generator="trotot-test">
+  <node id="1" version="1" timestamp="2026-10-01T00:00:00Z" lat="10.7725" lon="106.6578">
+    <tag k="name" v="Synthetic supermarket"/><tag k="shop" v="supermarket"/>
+  </node>
+  <node id="2" version="1" timestamp="2026-10-01T00:00:00Z" lat="10.77" lon="106.65"/>
+  <node id="3" version="1" timestamp="2026-10-01T00:00:00Z" lat="10.77" lon="106.66"/>
+  <node id="4" version="1" timestamp="2026-10-01T00:00:00Z" lat="10.78" lon="106.66"/>
+  <node id="5" version="1" timestamp="2026-10-01T00:00:00Z" lat="10.78" lon="106.65"/>
+  <way id="1" version="1" timestamp="2026-10-01T00:00:00Z">
+    <nd ref="2"/><nd ref="3"/><nd ref="4"/><nd ref="5"/><nd ref="2"/>
+    <tag k="name" v="Synthetic market"/><tag k="amenity" v="marketplace"/>
+  </way>
+</osm>

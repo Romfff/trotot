@@ -1,0 +1,15 @@
+{
+ "version":"nearby-v1",
+ "groups":{
+  "MARKETS":{"label":"Chợ và siêu thị","radiusMeters":2000,"modes":["LONG_TERM","HYBRID"]},
+  "BACH_HOA_XANH":{"label":"Bách hóa Xanh","radiusMeters":2000,"modes":["LONG_TERM","HYBRID"]},
+  "GROCERIES":{"label":"Tạp hóa","radiusMeters":1000,"modes":["LONG_TERM","HYBRID"]},
+  "UNIVERSITIES":{"label":"Đại học","radiusMeters":2000,"modes":["LONG_TERM","HYBRID"]},
+  "HOSPITALS":{"label":"Bệnh viện","radiusMeters":2000,"modes":["LONG_TERM","HYBRID"]},
+  "BUS_STOPS":{"label":"Trạm xe buýt","radiusMeters":1000,"modes":["LONG_TERM","HYBRID"]},
+  "ATTRACTIONS":{"label":"Địa điểm tham quan","radiusMeters":5000,"modes":["SHORT_TERM","HYBRID"]},
+  "DINING":{"label":"Nhà hàng và cà phê","radiusMeters":3000,"modes":["SHORT_TERM","HYBRID"]},
+  "TRANSPORT":{"label":"Nhà ga","radiusMeters":5000,"modes":["SHORT_TERM","HYBRID"]},
+  "FAMOUS":{"label":"Địa danh nổi tiếng","radiusMeters":50000,"modes":["SHORT_TERM","HYBRID"]}
+ }
+}

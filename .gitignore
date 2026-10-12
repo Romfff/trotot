@@ -54,24 +54,36 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files
+# Local secrets and machine-specific settings
 .env
 .env.development.local
 .env.test.local
 .env.production.local
 .env.local
+.env.*
+!.env.example
 
 # Stores VSCode versions used for testing
 .vscode-test
 
 # Next.js build output
 .next/
+frontend/.next-*/
 out/
 
 # Production build output
 dist/
 build/
 
+# Backend-specific generated artifacts
+backend/coverage/
+backend/coverage-unit/
+backend/.vitest/
+backend/src/generated/prisma/
+
 # OS metadata
 .DS_Store
 Thumbs.db
+.idea/
+.vscode/
+/.tmp/

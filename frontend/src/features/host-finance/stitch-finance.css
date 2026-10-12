@@ -1,0 +1,93 @@
+.stitch-finance-page {
+  max-width: 1120px;
+  padding: 32px 28px;
+}
+.stitch-finance-page > header h1 {
+  font-size: 28px;
+  line-height: 1.25;
+}
+.stitch-finance-page section > h2,
+.stitch-finance-page section > header h2,
+.stitch-finance-page form > h2 {
+  font-size: 20px;
+  line-height: 1.4;
+}
+.stitch-finance-page > section {
+  box-shadow: var(--shadow-sm);
+}
+.stitch-finance-page > section:not(:has(#finance-history-title)) {
+  padding: 24px;
+}
+.stitch-finance-balances > div {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--background);
+}
+.stitch-finance-balances dd {
+  margin-top: 10px;
+  font-size: 24px;
+  line-height: 1.3;
+}
+.stitch-bank-page { max-width: 880px; }
+.host-finance-ledger { max-width: 1200px; }
+.host-finance-ledger .finance-host-name { margin-top: 8px; font-weight: 500; color: var(--foreground); }
+.host-finance-ledger .finance-principle { display: flex; gap: 12px; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft-green); color: var(--foreground); }
+.host-finance-ledger .finance-principle > svg { color: var(--primary-dark); margin-top: 2px; }
+.host-finance-ledger .stitch-finance-balances > div { background: var(--surface); padding: 20px; }
+.host-finance-ledger .stitch-finance-balances dt { min-height: 40px; }
+.host-finance-ledger .stitch-finance-balances dd.finance-long-amount { font-size: 16px; white-space: nowrap; overflow-wrap: normal; }
+.host-finance-ledger [aria-labelledby="finance-summary-title"] > header h2 { text-wrap: balance; }
+.host-finance-ledger [aria-labelledby="finance-summary-title"] > header > button { flex-shrink: 0; white-space: nowrap; }
+.host-finance-ledger [aria-label="Chỉ số biểu đồ"] { display: grid; grid-template-columns: minmax(0, 1fr); }
+.host-finance-ledger [aria-label="Chỉ số biểu đồ"] > button { white-space: nowrap; }
+.host-finance-ledger .stitch-finance-balances > div:nth-child(3) { border-color: var(--primary); background: var(--soft-green); }
+.host-finance-ledger .stitch-finance-balances > div:nth-child(3) dd { color: var(--primary-dark); }
+.host-finance-ledger .finance-observation-grid { display: grid; gap: 24px; align-items: start; }
+.host-finance-ledger .finance-observation-grid > section { min-width: 0; padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.host-finance-ledger .finance-bank-overview { display: flex; flex-direction: column; gap: 16px; }
+.host-finance-ledger .finance-panel-icon { width: 44px; height: 44px; display: grid; place-items: center; background: var(--soft-green); color: var(--primary-dark); border-radius: 10px; }
+.host-finance-ledger .finance-bank-status { padding: 12px; border-radius: 8px; background: var(--background); font-size: 14px; }
+.host-finance-ledger .finance-bank-overview > .button { align-self: start; white-space: normal; text-align: center; }
+.host-finance-ledger .finance-debt-overview > div { display: grid; gap: 24px; }
+.host-finance-ledger .finance-debt-overview > div > section { margin: 0; min-width: 0; padding: 24px; box-shadow: var(--shadow-sm); }
+.host-revenue-columns { min-width: 0; }
+.host-revenue-columns .revenue-chart-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; border: 1px solid var(--line); border-radius: 8px; background: var(--background); }
+.host-revenue-columns .revenue-column-chart { display: block; width: 100%; min-width: 640px; height: auto; }
+.host-revenue-columns .revenue-gridline { stroke: var(--line); stroke-dasharray: 3 4; }
+.host-revenue-columns .revenue-zero-line { stroke: var(--muted); stroke-width: 1.5; }
+.host-revenue-columns .revenue-axis-label, .host-revenue-columns .revenue-month-label { fill: var(--muted); font-size: 12px; font-family: inherit; }
+.host-revenue-columns .revenue-column { fill: var(--primary-dark); }
+.host-revenue-columns .revenue-column-negative { fill: var(--muted); }
+.host-revenue-columns .revenue-review-mark { fill: var(--muted); font-size: 18px; font-weight: 600; }
+.host-revenue-columns .revenue-amount-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 14px; }
+.host-revenue-columns .revenue-amount-table caption { text-align: start; margin-bottom: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.host-revenue-columns .revenue-amount-table th, .host-revenue-columns .revenue-amount-table td { padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.host-revenue-columns .revenue-amount-table th { text-align: start; font-weight: 500; }
+.host-revenue-columns .revenue-amount-table th:first-child { width: 88px; }
+.host-revenue-columns .revenue-amount-table td { text-align: end; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.host-revenue-columns .revenue-review-detail { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+@media (max-width: 639px) {
+  .host-revenue-columns .revenue-amount-table td.revenue-long-amount { font-size: 12px; white-space: nowrap; overflow-wrap: normal; }
+}
+@media (min-width: 1024px) {
+  .host-finance-ledger .finance-observation-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+  .host-finance-ledger .finance-debt-overview > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 640px) {
+  .host-finance-ledger [aria-label="Chỉ số biểu đồ"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .host-finance-ledger .stitch-finance-balances:has(.finance-long-amount) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 639px) {
+  .host-finance-ledger .finance-observation-grid > section,
+  .host-finance-ledger .finance-debt-overview > div > section { padding: 20px; }
+  .host-finance-ledger .finance-principle { padding: 16px; }
+}
+@media (min-width: 1024px) {
+  .stitch-finance-balances { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 639px) {
+  .stitch-finance-page { padding: 24px 16px; }
+  .stitch-finance-page > header h1 { font-size: 24px; }
+  .stitch-finance-page > section:not(:has(#finance-history-title)) { padding: 20px; }
+}

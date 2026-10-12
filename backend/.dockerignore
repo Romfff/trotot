@@ -1,0 +1,16 @@
+*
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.build.json
+!nest-cli.json
+!prisma.config.ts
+!prisma/
+!prisma/**
+!src/
+!src/**
+src/generated/
+!test/
+!test/**
+!scripts/
+!scripts/**

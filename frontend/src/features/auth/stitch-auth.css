@@ -1,0 +1,11 @@
+.auth-page { width: 100%; max-width: 416px; padding: 56px 16px; }
+.auth-card { padding: 32px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.auth-title { margin-bottom: 8px; font-size: 20px; line-height: 28px; }
+.auth-description { margin: 0 0 24px; line-height: 21px; }
+.auth-form { gap: 16px; }
+.auth-switch { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 24px; line-height: 21px; }
+.auth-card .form-row { flex-wrap: wrap; }
+@media (max-width: 767px) {
+  .auth-page { padding-block: 24px; }
+  .auth-card { padding: 24px 20px; }
+}

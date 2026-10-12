@@ -1,0 +1,9 @@
+BEGIN;
+ALTER TABLE homestay_units ADD COLUMN version INT NOT NULL DEFAULT 1 CHECK (version>=1),
+ ADD COLUMN deleted_at TIMESTAMPTZ,ADD COLUMN pending_revision JSONB;
+CREATE TABLE homestay_policy_audit (
+ id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),unit_id UUID NOT NULL REFERENCES homestay_units(id) ON DELETE RESTRICT,
+ actor_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,old_values JSONB NOT NULL,new_values JSONB NOT NULL,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+COMMIT;

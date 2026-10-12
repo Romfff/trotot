@@ -1,0 +1,32 @@
+import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module.js';
+import { HomestaysModule } from '../homestays/homestays.module.js';
+import { BookingsService } from './bookings.service.js';
+import { BookingsController } from './bookings.controller.js';
+import { BookingIdempotencyService } from './booking-idempotency.service.js';
+import { BookingExpiryService } from './booking-expiry.service.js';
+import { BookingWorkerService } from './booking-worker.service.js';
+import { ManualRefundsController } from '../finance/manual-refunds.controller.js';
+import { ManualRefundsService } from '../finance/manual-refunds.service.js';
+import { BankAccountsController } from '../finance/bank-accounts.controller.js';
+import { BankAccountsService } from '../finance/bank-accounts.service.js';
+import { ComplaintsController } from '../finance/complaints.controller.js';
+import { ComplaintsService } from '../finance/complaints.service.js';
+import { HostFinanceController } from '../finance/host-finance.controller.js';
+import { HostFinanceService } from '../finance/host-finance.service.js';
+import { DebtSettlementsService } from '../finance/debt-settlements.service.js';
+import { DebtSettlementsController } from '../finance/debt-settlements.controller.js';
+import { NoShowController } from '../finance/no-show.controller.js';
+import { NoShowService } from '../finance/no-show.service.js';
+import { ComplaintNotificationsController } from '../finance/complaint-notifications.controller.js';
+import { ComplaintNotificationsService } from '../finance/complaint-notifications.service.js';
+import { PayoutDraftsController } from '../finance/payout-drafts.controller.js';
+import { PayoutDraftsService } from '../finance/payout-drafts.service.js';
+import { PayoutNotificationsController } from '../finance/payout-notifications.controller.js';
+import { PayoutNotificationsService } from '../finance/payout-notifications.service.js';
+import { PaymentReviewsController } from '../finance/payment-reviews.controller.js';
+import { PaymentReviewsService } from '../finance/payment-reviews.service.js';
+import { VnpayIpnController } from '../payments/vnpay-ipn.controller.js';
+import { PaymentRealtimeService } from '../payments/payment-realtime.service.js';
+@Module({exports:[PaymentRealtimeService],imports:[AuthModule,HomestaysModule],controllers:[BookingsController,ManualRefundsController,BankAccountsController,ComplaintsController,HostFinanceController,NoShowController,ComplaintNotificationsController,PayoutDraftsController,PayoutNotificationsController,PaymentReviewsController,VnpayIpnController,DebtSettlementsController],providers:[BookingsService,BookingIdempotencyService,BookingExpiryService,BookingWorkerService,ManualRefundsService,BankAccountsService,ComplaintsService,HostFinanceService,NoShowService,ComplaintNotificationsService,PayoutDraftsService,PayoutNotificationsService,PaymentReviewsService,PaymentRealtimeService,DebtSettlementsService]})
+export class BookingsModule {}

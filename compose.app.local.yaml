@@ -1,0 +1,104 @@
+# Standalone local test stack. Do not merge with the existing DB Compose.
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: ${LOCAL_POSTGRES_DB:?Set LOCAL_POSTGRES_DB}
+      POSTGRES_USER: ${LOCAL_POSTGRES_USER:?Set LOCAL_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${LOCAL_POSTGRES_PASSWORD:?Set LOCAL_POSTGRES_PASSWORD}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    networks: [app]
+  redis:
+    image: redis:7-alpine
+    environment:
+      REDIS_PASSWORD: ${LOCAL_REDIS_PASSWORD:?Set LOCAL_REDIS_PASSWORD}
+    command: [sh, -c, 'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"']
+    volumes: [redis_data:/data]
+    healthcheck:
+      test: [CMD-SHELL, 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping']
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    networks: [app]
+  migrate:
+    build: {context: ./backend, target: migration}
+    environment:
+      DATABASE_URL: ${LOCAL_DATABASE_URL:?Set LOCAL_DATABASE_URL with postgres hostname}
+    depends_on:
+      postgres: {condition: service_healthy}
+    networks: [app]
+  api:
+    build: {context: ./backend, target: runtime}
+    environment:
+      NODE_ENV: development
+      OTP_PROVIDER: mock
+      LISTEN_HOST: 0.0.0.0
+      PORT: 5000
+      API_PREFIX: api/v1
+      DATABASE_URL: ${LOCAL_DATABASE_URL:?Set LOCAL_DATABASE_URL}
+      DATABASE_POOL_MAX: ${LOCAL_DATABASE_POOL_MAX:-10}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${LOCAL_REDIS_PASSWORD:?Set LOCAL_REDIS_PASSWORD}
+      JWT_ACCESS_SECRET: ${LOCAL_JWT_ACCESS_SECRET:?Set LOCAL_JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${LOCAL_JWT_REFRESH_SECRET:?Set LOCAL_JWT_REFRESH_SECRET}
+      BFF_PROXY_SECRET: ${LOCAL_BFF_PROXY_SECRET:?Set LOCAL_BFF_PROXY_SECRET}
+      HOMESTAY_QUOTE_SECRET: ${LOCAL_HOMESTAY_QUOTE_SECRET:-}
+      BOOKING_ALLOW_UNCONFIGURED_PAYMENT: ${LOCAL_BOOKING_ALLOW_UNCONFIGURED_PAYMENT:-false}
+      BOOKING_MIN_NIGHTLY_PRICE: ${LOCAL_BOOKING_MIN_NIGHTLY_PRICE:-1}
+      CORS_ORIGINS: ${LOCAL_FRONTEND_ORIGIN:?Set LOCAL_FRONTEND_ORIGIN}
+      REALTIME_ENABLED: ${LOCAL_REALTIME_ENABLED:-true}
+      TRUSTED_PROXY_CIDRS: ${LOCAL_PROXY_IP:-172.30.247.10}/32
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, node, -e, 'fetch("http://127.0.0.1:5000/api/v1/health").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))']
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    networks: [app]
+  web:
+    build:
+      context: ./frontend
+      target: runtime
+      args:
+        NEXT_PUBLIC_PAYMENT_REALTIME_URL: ${LOCAL_FRONTEND_ORIGIN:?Set LOCAL_FRONTEND_ORIGIN}
+    environment:
+      BACKEND_API_URL: http://api:5000/api/v1
+      FRONTEND_ORIGIN: ${LOCAL_FRONTEND_ORIGIN:?Set LOCAL_FRONTEND_ORIGIN}
+      BFF_PROXY_SECRET: ${LOCAL_BFF_PROXY_SECRET:?Set LOCAL_BFF_PROXY_SECRET}
+      TRUSTED_CLIENT_IP_HEADER: x-trotot-edge-ip
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, node, -e, 'fetch("http://127.0.0.1:3000/favicon.ico").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))']
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    networks: [app]
+  edge:
+    image: nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236
+    user: '101:101'
+    entrypoint: [nginx]
+    command: [-g, 'daemon off;']
+    read_only: true
+    tmpfs: [/tmp]
+    volumes: [./ops/nginx.local.conf:/etc/nginx/nginx.conf:ro]
+    ports: ['127.0.0.1:${LOCAL_WEB_PORT:-38080}:8080']
+    depends_on:
+      web: {condition: service_healthy}
+    networks:
+      app: {ipv4_address: '${LOCAL_PROXY_IP:-172.30.247.10}'}
+networks:
+  app:
+    ipam:
+      config: [{subnet: '${LOCAL_SUBNET:-172.30.247.0/24}'}]
+volumes:
+  postgres_data:
+  redis_data:

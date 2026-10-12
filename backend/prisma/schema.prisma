@@ -1,0 +1,1005 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Nearby uses reviewed datasets; public exposure is separately feature-gated.
+model NearbyImport {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  version String @unique @db.VarChar(100)
+  configVersion String @map("config_version") @db.VarChar(30)
+  sourceUrl String @map("source_url")
+  sourceAsOf DateTime @map("source_as_of") @db.Timestamptz(6)
+  extractSha256 String @map("extract_sha256") @db.Char(64)
+  exportSha256 String @map("export_sha256") @db.Char(64)
+  boundarySha256 String @map("boundary_sha256") @db.Char(64)
+  status String @default("STAGED") @db.VarChar(20)
+  featureCount Int @map("feature_count")
+  ignoredCount Int @map("ignored_count")
+  outsideCount Int @map("outside_count")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  places NearbyImportPlace[]
+  active NearbyDatasetState?
+  publishedPlaces NearbyPlace[]
+  snapshots PropertyNearbySnapshot[]
+  quality NearbyImportQuality?
+  eventsFrom NearbyDatasetEvent[] @relation("NearbyDatasetFrom")
+  eventsTo NearbyDatasetEvent[] @relation("NearbyDatasetTo")
+  failures NearbyJobFailure[]
+  @@map("nearby_imports")
+}
+model NearbyImportQuality {
+ importId String @id @map("import_id") @db.Uuid
+ quarantinedCount Int @map("quarantined_count")
+ report Json
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+ dataset NearbyImport @relation(fields:[importId],references:[id],onDelete:Restrict)
+ @@map("nearby_import_quality")
+}
+model NearbyDatasetEvent {
+ id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+ fromImportId String? @map("from_import_id") @db.Uuid
+ toImportId String @map("to_import_id") @db.Uuid
+ action String @db.VarChar(10)
+ reason String @db.VarChar(500)
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+ previous NearbyImport? @relation("NearbyDatasetFrom",fields:[fromImportId],references:[id],onDelete:Restrict)
+ next NearbyImport @relation("NearbyDatasetTo",fields:[toImportId],references:[id],onDelete:Restrict)
+ @@map("nearby_dataset_events")
+}
+
+model NearbyImportPlace {
+  importId String @map("import_id") @db.Uuid
+  externalType String @map("external_type") @db.VarChar(10)
+  externalId String @map("external_id") @db.VarChar(20)
+  sourceVersion Int @map("source_version")
+  sourceUpdatedAt DateTime @map("source_updated_at") @db.Timestamptz(6)
+  name String @db.VarChar(300)
+  category String @db.VarChar(30)
+  tags Json
+  location Unsupported("geography(Point,4326)")
+  representativeMethod String @map("representative_method") @db.VarChar(30)
+  dataset NearbyImport @relation(fields: [importId], references: [id], onDelete: Restrict)
+  @@id([importId, externalType, externalId])
+  @@index([location], type: Gist, map: "nearby_import_places_location_idx")
+  @@index([importId, category], map: "nearby_import_places_category_idx")
+  @@map("nearby_import_places")
+}
+
+model NearbyPlace {
+ id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+ externalType String @map("external_type") @db.VarChar(10)
+ externalId String @map("external_id") @db.VarChar(20)
+ source String @default("OSM") @db.VarChar(10)
+ name String @db.VarChar(300)
+ category String @db.VarChar(30)
+ tags Json
+ location Unsupported("geography(Point,4326)")
+ representativeMethod String @map("representative_method") @db.VarChar(30)
+ datasetId String @map("dataset_id") @db.Uuid
+ sourceVersion Int @map("source_version")
+ sourceUpdatedAt DateTime @map("source_updated_at") @db.Timestamptz(6)
+ retiredAt DateTime? @map("retired_at") @db.Timestamptz(6)
+ dataset NearbyImport @relation(fields:[datasetId],references:[id],onDelete:Restrict)
+ items PropertyNearbyPlace[]
+ overrides PropertyNearbyOverride[]
+ audit NearbyVisibilityAudit[]
+ @@unique([source,externalType,externalId])
+ @@index([location],type:Gist,map:"nearby_places_location_idx")
+ @@map("nearby_places")
+}
+model NearbyDatasetState {
+ id Int @id @db.SmallInt
+ importId String @unique @map("import_id") @db.Uuid
+ promotedAt DateTime @default(now()) @map("promoted_at") @db.Timestamptz(6)
+ reviewReference String @map("review_reference") @db.VarChar(500)
+ dataset NearbyImport @relation(fields:[importId],references:[id],onDelete:Restrict)
+ @@map("nearby_dataset_state")
+}
+model PropertyNearbySnapshot {
+ id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+ propertyId String @map("property_id") @db.Uuid
+ coordinateHash String @map("coordinate_hash") @db.Char(64)
+ datasetId String @map("dataset_id") @db.Uuid
+ configVersion String @map("config_version") @db.VarChar(30)
+ generation String @db.Char(64)
+ latitude Float
+ longitude Float
+ rentalMode String @map("rental_mode") @db.VarChar(30)
+ provinceCode String @map("province_code") @db.VarChar(20)
+ status String @db.VarChar(10)
+ lastSuccessAt DateTime @default(now()) @map("last_success_at") @db.Timestamptz(6)
+ nextRefreshAt DateTime @default(dbgenerated("now() + interval '7 days'")) @map("next_refresh_at") @db.Timestamptz(6)
+ property Property @relation(fields:[propertyId],references:[id],onDelete:Cascade)
+ dataset NearbyImport @relation(fields:[datasetId],references:[id],onDelete:Restrict)
+ items PropertyNearbyPlace[]
+ activeFor PropertyNearbyState[]
+ @@unique([propertyId,generation])
+ @@index([nextRefreshAt,propertyId],map:"property_nearby_snapshots_due_idx")
+ @@map("property_nearby_snapshots")
+}
+model PropertyNearbyPlace {
+ snapshotId String @map("snapshot_id") @db.Uuid
+ placeId String @map("place_id") @db.Uuid
+ groupCode String @map("group_code") @db.VarChar(30)
+ rank Int
+ distanceMeters Float @map("distance_meters")
+ item Json
+ snapshot PropertyNearbySnapshot @relation(fields:[snapshotId],references:[id],onDelete:Cascade)
+ place NearbyPlace @relation(fields:[placeId],references:[id],onDelete:Restrict)
+ @@id([snapshotId,placeId,groupCode])
+ @@unique([snapshotId,groupCode,rank])
+ @@map("property_nearby_places")
+}
+model PropertyNearbyState {
+ propertyId String @id @map("property_id") @db.Uuid
+ activeSnapshotId String? @map("active_snapshot_id") @db.Uuid
+ visibilityVersion Int @default(0) @map("visibility_version")
+ property Property @relation(fields:[propertyId],references:[id],onDelete:Cascade)
+ snapshot PropertyNearbySnapshot? @relation(fields:[activeSnapshotId],references:[id],onDelete:SetNull)
+ @@map("property_nearby_state")
+}
+model PropertyNearbyOverride {
+ propertyId String @map("property_id") @db.Uuid
+ placeId String @map("place_id") @db.Uuid
+ hidden Boolean
+ reason String @db.VarChar(500)
+ actorAdminId String @map("actor_admin_id") @db.Uuid
+ version Int
+ updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+ property Property @relation(fields:[propertyId],references:[id],onDelete:Cascade)
+ place NearbyPlace @relation(fields:[placeId],references:[id],onDelete:Restrict)
+ actor User @relation(fields:[actorAdminId],references:[id],onDelete:Restrict)
+ @@id([propertyId,placeId])
+ @@map("property_nearby_overrides")
+}
+model NearbyVisibilityRequest {
+ actorId String @map("actor_id") @db.Uuid
+ key String @db.VarChar(128)
+ payloadHash String @map("payload_hash") @db.Char(64)
+ response Json
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+ actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+ @@id([actorId,key])
+ @@map("nearby_visibility_requests")
+}
+model NearbyVisibilityAudit {
+ id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+ propertyId String @map("property_id") @db.Uuid
+ placeId String @map("place_id") @db.Uuid
+ actorId String @map("actor_id") @db.Uuid
+ beforeValue Json? @map("before_value")
+ afterValue Json @map("after_value")
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+ property Property @relation(fields:[propertyId],references:[id],onDelete:Restrict)
+ place NearbyPlace @relation(fields:[placeId],references:[id],onDelete:Restrict)
+ actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+ @@map("nearby_visibility_audit")
+}
+model NearbyJobFailure {
+ propertyId String @id @map("property_id") @db.Uuid
+ latitude Float
+ longitude Float
+ rentalMode String @map("rental_mode") @db.VarChar(30)
+ provinceCode String @map("province_code") @db.VarChar(20)
+ datasetId String @map("dataset_id") @db.Uuid
+ configVersion String @map("config_version") @db.VarChar(30)
+ attempts Int @default(1)
+ nextRetryAt DateTime @map("next_retry_at") @db.Timestamptz(6)
+ updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+ property Property @relation(fields:[propertyId],references:[id],onDelete:Cascade)
+ dataset NearbyImport @relation(fields:[datasetId],references:[id],onDelete:Restrict)
+ @@map("nearby_job_failures")
+}
+
+model User {
+  id                  String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  phone               String         @unique @db.VarChar(20)
+  email               String?        @unique @db.VarChar(255)
+  passwordHash        String         @map("password_hash") @db.VarChar(255)
+  sessionVersion      Int            @default(0) @map("session_version")
+  fullName            String         @map("full_name") @db.VarChar(150)
+  role                String         @default("TENANT") @db.VarChar(20)
+  avatarUrl           String?        @map("avatar_url")
+  isPhoneVerified     Boolean?       @default(false) @map("is_phone_verified")
+  isIdentityVerified  Boolean?       @default(false) @map("is_identity_verified")
+  status              String?        @default("ACTIVE") @db.VarChar(20)
+  createdAt           DateTime?      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime?      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  moderationEvents    ListingModerationEvent[]
+  hostProfile         HostProfile?
+  refreshTokens       RefreshToken[]
+  properties          Property[]
+  viewingAppointments ViewingAppointment[]
+  bookings            Booking[]
+  reviews             Review[]
+  chatsAsGuest        ChatConversation[] @relation("ChatGuest")
+  chatsAsHost         ChatConversation[] @relation("ChatHost")
+  chatMessages        ChatMessage[]
+  chatReadCursors     ChatReadCursor[]
+  moderationAsActor UserModerationEvent[] @relation("UserModerationActor")
+  moderationAsTarget UserModerationEvent[] @relation("UserModerationTarget")
+  paymentSessions     PaymentSession[]
+  bookingIdempotency  BookingIdempotency[]
+  appointmentIdempotency AppointmentIdempotency[]
+  notifications       AppointmentNotification[]
+  financeJournalsAsHost FinanceJournal[] @relation("FinanceJournalHost")
+  financeJournalsAsActor FinanceJournal[] @relation("FinanceJournalActor")
+  financeCancellations FinanceCancellation[]
+  refundConfirmations FinanceRefundConfirmation[]
+  bankAccounts FinanceBankAccount[]
+  bankState FinanceBankState?
+  bankEvents FinanceBankEvent[]
+  complaintsAsGuest FinanceComplaint[] @relation("ComplaintGuest")
+  complaintsAsHost FinanceComplaint[] @relation("ComplaintHost")
+  complaintsAssigned FinanceComplaint[] @relation("ComplaintAssignee")
+  complaintEvents FinanceComplaintEvent[]
+  complaintResolutions FinanceComplaintResolution[]
+  complaintNotificationReads FinanceComplaintNotificationRead[]
+  noShowReports FinanceNoShowReport[]
+  noShowResolutions FinanceNoShowResolution[]
+  payoutBatches FinancePayoutBatch[]
+  payoutEvents FinancePayoutEvent[]
+  payoutConfirmations FinancePayoutConfirmation[]
+  nearbyOverrides PropertyNearbyOverride[]
+  nearbyRequests NearbyVisibilityRequest[]
+  nearbyAudit NearbyVisibilityAudit[]
+
+  @@map("users")
+}
+
+model HostProfile {
+  userId             String   @id @map("user_id") @db.Uuid
+  bankCode           String?  @map("bank_code") @db.VarChar(20)
+  bankAccountNumber  String?  @map("bank_account_number") @db.VarChar(50)
+  bankAccountName    String?  @map("bank_account_name") @db.VarChar(150)
+  balanceWallet      Decimal  @default(0) @map("balance_wallet") @db.Decimal(18, 2)
+  payoutSchedule     String?  @map("payout_schedule") @db.VarChar(20)
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("host_profiles")
+}
+
+model UserModerationEvent {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  actorId String @map("actor_id") @db.Uuid
+  targetId String @map("target_id") @db.Uuid
+  statusBefore String @map("status_before") @db.VarChar(20)
+  statusAfter String @map("status_after") @db.VarChar(20)
+  reason String @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  actor User @relation("UserModerationActor", fields:[actorId], references:[id], onDelete:Restrict)
+  target User @relation("UserModerationTarget", fields:[targetId], references:[id], onDelete:Restrict)
+  @@index([targetId,createdAt,id])
+  @@map("user_moderation_events")
+}
+
+model RefreshToken {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  tokenHash  String    @unique @map("token_hash") @db.Char(64)
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model Property {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  hostId         String   @map("host_id") @db.Uuid
+  title          String   @db.VarChar(255)
+  slug           String   @unique @db.VarChar(300)
+  propertyType   String   @map("property_type") @db.VarChar(50)
+  rentalMode     String   @map("rental_mode") @db.VarChar(30)
+  listingPlan    String   @default("FREE") @map("listing_plan") @db.VarChar(20)
+  description    String
+  videoUrl       String?  @map("video_url") @db.VarChar(2048)
+  addressDetail  String   @map("address_detail") @db.VarChar(255)
+  provinceCode   String   @map("province_code") @db.VarChar(20)
+  // Approved address exception: current province/ward model has no district tier.
+  districtCode   String?  @map("district_code") @db.VarChar(20)
+  wardCode       String   @map("ward_code") @db.VarChar(20)
+  latitude       Float
+  longitude      Float
+  location       Unsupported("geometry(Point,4326)")?
+  version        Int      @default(1)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  isAvailable    Boolean  @default(true) @map("is_available")
+  status         String   @default("PENDING_REVIEW") @db.VarChar(30)
+  isVip          Boolean  @default(false) @map("is_vip")
+  vipExpireAt    DateTime? @map("vip_expire_at") @db.Timestamptz(6)
+  isVerified     Boolean  @default(false) @map("is_verified")
+  viewCount      Int      @default(0) @map("view_count")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  host           User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  longTermDetail LongTermDetail?
+  homestayUnits  HomestayUnit[]
+  images         PropertyImage[]
+  amenities      PropertyAmenityMapping[]
+  appointments   ViewingAppointment[]
+  revision       PropertyRevision?
+  moderationEvents ListingModerationEvent[]
+  conversations ChatConversation[]
+  ward           AddressWard @relation(fields: [wardCode, provinceCode], references: [code, provinceCode], onDelete: Restrict)
+  nearbySnapshots PropertyNearbySnapshot[]
+  nearbyState PropertyNearbyState?
+  nearbyFailure NearbyJobFailure?
+  nearbyOverrides PropertyNearbyOverride[]
+  nearbyAudit NearbyVisibilityAudit[]
+
+  @@index([hostId, status])
+  @@index([rentalMode, status, createdAt, id])
+  @@index([provinceCode, districtCode, status])
+  @@map("properties")
+}
+
+model ChatConversation {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  propertyId String @map("property_id") @db.Uuid
+  guestId String @map("guest_id") @db.Uuid
+  hostId String @map("host_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  property Property @relation(fields:[propertyId],references:[id],onDelete:Restrict)
+  guest User @relation("ChatGuest",fields:[guestId],references:[id],onDelete:Restrict)
+  host User @relation("ChatHost",fields:[hostId],references:[id],onDelete:Restrict)
+  messages ChatMessage[]
+  readCursors ChatReadCursor[]
+  @@unique([propertyId,guestId,hostId])
+  @@index([guestId,createdAt,id])
+  @@index([hostId,createdAt,id])
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  conversationId String @map("conversation_id") @db.Uuid
+  senderId String @map("sender_id") @db.Uuid
+  clientMessageId String @map("client_message_id") @db.Uuid
+  text String @db.VarChar(3000)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(3)
+  conversation ChatConversation @relation(fields:[conversationId],references:[id],onDelete:Restrict)
+  sender User @relation(fields:[senderId],references:[id],onDelete:Restrict)
+  readCursors ChatReadCursor[]
+  @@unique([conversationId,senderId,clientMessageId])
+  @@index([conversationId,createdAt,id])
+  @@map("chat_messages")
+}
+
+model ChatReadCursor {
+  conversationId String @map("conversation_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  messageId String @map("message_id") @db.Uuid
+  conversation ChatConversation @relation(fields:[conversationId],references:[id],onDelete:Restrict)
+  user User @relation(fields:[userId],references:[id],onDelete:Restrict)
+  message ChatMessage @relation(fields:[messageId],references:[id],onDelete:Restrict)
+  @@id([conversationId,userId])
+  @@index([userId])
+  @@map("chat_read_cursors")
+}
+
+// Versioned official province/ward catalog. Test catalogs must not be imported here.
+model AddressProvince {
+  code  String @id @db.VarChar(20)
+  name  String @db.VarChar(150)
+  wards AddressWard[]
+  @@map("address_provinces")
+}
+
+model AddressWard {
+  code         String @id @db.VarChar(20)
+  name         String @db.VarChar(150)
+  provinceCode String @map("province_code") @db.VarChar(20)
+  province     AddressProvince @relation(fields: [provinceCode], references: [code], onDelete: Restrict)
+  properties   Property[]
+  @@unique([code, provinceCode])
+  @@map("address_wards")
+}
+
+// Only the last submitted revision is kept here; the approved snapshot stays in properties.
+model PropertyRevision {
+  id         String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  propertyId String @unique @map("property_id") @db.Uuid
+  content    Json
+  status     String @default("PENDING_REVIEW") @db.VarChar(30)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  @@map("property_revisions")
+}
+
+model LongTermDetail {
+  propertyId      String   @id @map("property_id") @db.Uuid
+  monthlyPrice    Decimal  @map("monthly_price") @db.Decimal(15, 2)
+  depositAmount   Decimal  @map("deposit_amount") @db.Decimal(15, 2)
+  leaseTermMonths Int      @default(6) @map("lease_term_months")
+  areaSqm         Decimal  @map("area_sqm") @db.Decimal(6, 2)
+  electricityCost Decimal  @map("electricity_cost") @db.Decimal(12, 2)
+  waterCost       Decimal  @map("water_cost") @db.Decimal(12, 2)
+  waterUnit       String   @default("M3") @map("water_unit") @db.VarChar(20)
+  internetCost    Decimal  @default(0) @map("internet_cost") @db.Decimal(12, 2)
+  garbageCost     Decimal  @map("garbage_cost") @db.Decimal(12, 2)
+  parkingFee      Decimal  @default(0) @map("parking_fee") @db.Decimal(12, 2)
+  contactPhone    String   @map("contact_phone") @db.VarChar(20)
+  contactZalo     String?  @map("contact_zalo") @db.VarChar(20)
+  allowPets       Boolean  @default(false) @map("allow_pets")
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([monthlyPrice, propertyId])
+  @@index([areaSqm])
+  @@map("long_term_details")
+}
+
+model Amenity {
+  id         String @id @db.VarChar(50)
+  name       String @db.VarChar(100)
+  properties PropertyAmenityMapping[]
+
+  @@map("amenities")
+}
+
+model PropertyAmenityMapping {
+  propertyId String   @map("property_id") @db.Uuid
+  amenityId  String   @map("amenity_id") @db.VarChar(50)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenity    Amenity  @relation(fields: [amenityId], references: [id], onDelete: Restrict)
+
+  @@id([propertyId, amenityId])
+  @@index([amenityId, propertyId])
+  @@map("property_amenity_mapping")
+}
+
+model PropertyImage {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  propertyId String   @map("property_id") @db.Uuid
+  url        String   @db.VarChar(2048)
+  position   Int
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, position])
+  @@map("property_images")
+}
+
+model ViewingAppointment {
+  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  propertyId    String   @map("property_id") @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  tenantName    String   @map("tenant_name") @db.VarChar(150)
+  tenantPhone   String   @map("tenant_phone") @db.VarChar(20)
+  scheduledDate DateTime @map("scheduled_date") @db.Date
+  scheduledTime DateTime @map("scheduled_time") @db.Time(0)
+  status        String   @default("PENDING") @db.VarChar(30)
+  notes         String?
+  reason        String? @db.VarChar(500)
+  cancelledBy   String? @map("cancelled_by") @db.VarChar(10)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  property      Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenant        User     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  notifications AppointmentNotification[]
+
+  @@index([tenantId, scheduledDate])
+  @@index([propertyId, scheduledDate])
+  @@map("viewing_appointments")
+}
+
+model AppointmentIdempotency {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  operation String @default("POST /appointments") @db.VarChar(30)
+  key String @db.VarChar(128)
+  requestHash String @map("request_hash") @db.Char(64)
+  responseBody Json @map("response_body") @db.JsonB
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  @@unique([userId, operation, key])
+  @@index([expiresAt])
+  @@map("appointment_idempotency")
+}
+
+// Appointment notifications only. No contact details or external delivery claims.
+model AppointmentNotification {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  recipientId String @map("recipient_id") @db.Uuid
+  appointmentId String @map("appointment_id") @db.Uuid
+  type String @db.VarChar(30)
+  message String @db.VarChar(500)
+  readAt DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  recipient User @relation(fields: [recipientId], references: [id], onDelete: Restrict)
+  appointment ViewingAppointment @relation(fields: [appointmentId], references: [id], onDelete: Restrict)
+  @@index([recipientId, createdAt, id])
+  @@index([recipientId, readAt])
+  @@map("appointment_notifications")
+}
+
+// Audit only metadata; no copies of contact details, content, tokens or bank data.
+model ListingModerationEvent {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  propertyId String @map("property_id") @db.Uuid
+  actorId String @map("actor_id") @db.Uuid
+  action String @db.VarChar(10)
+  target String @db.VarChar(10)
+  reviewedVersion Int @map("reviewed_version")
+  resultVersion Int @map("result_version")
+  statusBefore String @map("status_before") @db.VarChar(30)
+  statusAfter String @map("status_after") @db.VarChar(30)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  property Property @relation(fields:[propertyId],references:[id],onDelete:Restrict)
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  @@unique([propertyId,reviewedVersion])
+  @@index([actorId,createdAt])
+  @@map("listing_moderation_events")
+}
+
+// Published unit/calendar foundation; public booking flows await the next owner checkpoint.
+model HomestayUnit {
+  id                   String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  propertyId           String @map("property_id") @db.Uuid
+  unitName             String @map("unit_name") @db.VarChar(150)
+  maxAdults            Int @map("max_adults")
+  maxChildren          Int @map("max_children")
+  maxGuests            Int? @map("max_guests")
+  maxNights            Int @default(90) @map("max_nights")
+  sameDayBookingCutoff DateTime @default(dbgenerated("'18:00:00'::time")) @map("same_day_booking_cutoff") @db.Time(0)
+  bedrooms             Int
+  bathrooms            Int
+  basePricePerNight    Decimal @map("base_price_per_night") @db.Decimal(15, 2)
+  weekendPricePerNight Decimal? @map("weekend_price_per_night") @db.Decimal(15, 2)
+  cleaningFee          Decimal @map("cleaning_fee") @db.Decimal(12, 2)
+  serviceFeeRate       Decimal @default(0) @map("service_fee_rate") @db.Decimal(5, 2)
+  taxRate              Decimal @default(0) @map("tax_rate") @db.Decimal(5, 2)
+  commissionRate       Decimal @default(10) @map("commission_rate") @db.Decimal(5, 2)
+  checkInTime          DateTime @map("check_in_time") @db.Time(0)
+  checkOutTime         DateTime @map("check_out_time") @db.Time(0)
+  cancellationPolicy   String @map("cancellation_policy") @db.VarChar(30)
+  instantBook          Boolean @map("instant_book")
+  status               String @default("PENDING_REVIEW") @db.VarChar(30)
+  version              Int @default(1)
+  deletedAt            DateTime? @map("deleted_at") @db.Timestamptz(6)
+  pendingRevision      Json? @map("pending_revision") @db.JsonB
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  property             Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  calendar             CalendarPricing[]
+  bookings             Booking[]
+
+  @@index([propertyId, status])
+  @@map("homestay_units")
+}
+
+model CalendarPricing {
+  id             BigInt @id @default(autoincrement())
+  homestayUnitId String @map("homestay_unit_id") @db.Uuid
+  date           DateTime @db.Date
+  customPrice    Decimal? @map("custom_price") @db.Decimal(15, 2)
+  status         String @default("AVAILABLE") @db.VarChar(20)
+  unit           HomestayUnit @relation(fields: [homestayUnitId], references: [id], onDelete: Restrict)
+
+  @@unique([homestayUnitId, date])
+  @@map("calendar_pricing")
+}
+
+// S3-01/04: immutable pricing/policy snapshots; SQL exclusion guards active overlapping stays.
+model Booking {
+  id                String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  bookingCode       String @unique @map("booking_code") @db.VarChar(32)
+  homestayUnitId    String @map("homestay_unit_id") @db.Uuid
+  guestId           String @map("guest_id") @db.Uuid
+  checkInDate       DateTime @map("check_in_date") @db.Date
+  checkOutDate      DateTime @map("check_out_date") @db.Date
+  totalNights       Int @map("total_nights")
+  numAdults         Int @map("num_adults")
+  numChildren       Int @map("num_children")
+  guestName         String @map("guest_name") @db.VarChar(150)
+  guestPhone        String @map("guest_phone") @db.VarChar(20)
+  guestEmail        String? @map("guest_email") @db.VarChar(255)
+  guestNotes        String? @map("guest_notes")
+  nightlyPrices     Json @map("nightly_prices") @db.JsonB
+  policySnapshot    Json @map("policy_snapshot") @db.JsonB
+  inventoryLock     Json? @map("inventory_lock") @db.JsonB
+  baseAmount        Decimal @map("base_amount") @db.Decimal(15, 2)
+  cleaningFee       Decimal @map("cleaning_fee") @db.Decimal(15, 2)
+  serviceFee        Decimal @map("service_fee") @db.Decimal(15, 2)
+  taxAmount         Decimal @map("tax_amount") @db.Decimal(15, 2)
+  totalAmount       Decimal @map("total_amount") @db.Decimal(15, 2)
+  serviceFeeRate    Decimal @map("service_fee_rate") @db.Decimal(5, 2)
+  taxRate           Decimal @map("tax_rate") @db.Decimal(5, 2)
+  commissionRate    Decimal @map("commission_rate") @db.Decimal(5, 2)
+  commissionAmount  Decimal @map("commission_amount") @db.Decimal(15, 2)
+  hostPayoutAmount  Decimal @map("host_payout_amount") @db.Decimal(15, 2)
+  bookingStatus     String @map("booking_status") @db.VarChar(30)
+  paymentStatus     String @map("payment_status") @db.VarChar(30)
+  expiresAt         DateTime @map("expires_at") @db.Timestamptz(6)
+  version           Int @default(1)
+  completedAt       DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  unit              HomestayUnit @relation(fields: [homestayUnitId], references: [id], onDelete: Restrict)
+  guest             User @relation(fields: [guestId], references: [id], onDelete: Restrict)
+  financeJournals    FinanceJournal[]
+  financeCancellation FinanceCancellation?
+  complaints FinanceComplaint[]
+  noShowReport FinanceNoShowReport?
+  noShowResolution FinanceNoShowResolution?
+  payoutItems FinancePayoutItem[]
+  paymentSessions PaymentSession[]
+  review Review?
+
+  @@index([guestId, createdAt, id])
+  @@index([homestayUnitId, bookingStatus])
+  @@index([bookingStatus, expiresAt])
+  @@map("bookings")
+}
+
+model Review {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  bookingId String @unique @map("booking_id") @db.Uuid
+  guestId String @map("guest_id") @db.Uuid
+  cleanliness Int
+  location Int
+  value Int
+  comment String @db.VarChar(2000)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  booking Booking @relation(fields:[bookingId],references:[id],onDelete:Restrict)
+  guest User @relation(fields:[guestId],references:[id],onDelete:Restrict)
+  @@index([createdAt(sort:Desc),id(sort:Desc)],map:"reviews_created_id_idx")
+  @@map("reviews")
+}
+
+// S4 internal VNPay session snapshot. SQL owns state/ownership and append-only guards.
+model PaymentSession {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  provider String @db.VarChar(20)
+  bookingId String @map("booking_id") @db.Uuid
+  guestId String @map("guest_id") @db.Uuid
+  bookingVersion Int @map("booking_version")
+  merchantCode String @map("merchant_code") @db.VarChar(8)
+  transactionRef String @unique(map:"payment_sessions_transaction_ref_key") @map("transaction_ref") @db.VarChar(32)
+  amountVnd Decimal @map("amount_vnd") @db.Decimal
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  booking Booking @relation(fields:[bookingId],references:[id],onDelete:Restrict)
+  guest User @relation(fields:[guestId],references:[id],onDelete:Restrict)
+  ipnReceipts VnpayIpnReceipt[]
+  @@unique([bookingId,provider],map:"payment_sessions_booking_id_provider_key")
+  @@map("payment_sessions")
+}
+
+// S4 internal ledger foundation; SQL guards balance, append-only and same-transaction line creation.
+model FinanceJournal {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  eventKey String @unique(map: "finance_journals_event_key_key") @map("event_key") @db.VarChar(256)
+  requestHash String @map("request_hash") @db.Char(64)
+  kind String @db.VarChar(30)
+  bookingId String? @map("booking_id") @db.Uuid
+  hostId String @map("host_id") @db.Uuid
+  actorId String? @map("actor_id") @db.Uuid
+  reason String @db.VarChar(500)
+  currency String @default("VND") @db.VarChar(3)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  createdTxid BigInt @default(dbgenerated("txid_current()")) @map("created_txid")
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  host User @relation("FinanceJournalHost",fields: [hostId], references: [id], onDelete: Restrict)
+  actor User? @relation("FinanceJournalActor",fields: [actorId], references: [id], onDelete: Restrict)
+  entries FinanceEntry[]
+  cancellationsAsSource FinanceCancellation[] @relation("CancellationSource")
+  cancellationAsReversal FinanceCancellation[] @relation("CancellationReversal")
+  refundConfirmation FinanceRefundConfirmation?
+  noShowResolution FinanceNoShowResolution?
+  payoutItems FinancePayoutItem[]
+  payoutPaidItem FinancePayoutPaidItem?
+  vnpayReceipt VnpayIpnReceipt?
+  @@index([hostId,createdAt,id], map: "finance_journals_host_created_idx")
+  @@index([bookingId], map: "finance_journals_booking_idx")
+  @@map("finance_journals")
+}
+
+model VnpayIpnReceipt {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sessionId String @map("session_id") @db.Uuid
+  merchantCode String @map("merchant_code") @db.VarChar(8)
+  transactionNo String @map("transaction_no") @db.VarChar(15)
+  payloadHash String @map("payload_hash") @db.Char(64)
+  amountVnd Decimal @map("amount_vnd") @db.Decimal
+  payDate DateTime? @map("pay_date") @db.Timestamptz(6)
+  receivedAt DateTime @default(dbgenerated("clock_timestamp()")) @map("received_at") @db.Timestamptz(6)
+  outcome String @db.VarChar(10)
+  reasonCode String @map("reason_code") @db.VarChar(40)
+  journalId String? @unique @map("journal_id") @db.Uuid
+  createdTxid BigInt @default(dbgenerated("txid_current()")) @map("created_txid")
+  session PaymentSession @relation(fields:[sessionId],references:[id],onDelete:Restrict)
+  journal FinanceJournal? @relation(fields:[journalId],references:[id],onDelete:Restrict)
+  @@unique([merchantCode,transactionNo])
+  @@map("vnpay_ipn_receipts")
+}
+
+model FinanceEntry {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  journalId String @map("journal_id") @db.Uuid
+  lineNumber Int @map("line_number")
+  account String @db.VarChar(30)
+  side String @db.VarChar(6)
+  amount Decimal @db.Decimal
+  journal FinanceJournal @relation(fields: [journalId], references: [id], onDelete: Restrict)
+  @@unique([journalId,lineNumber], map: "finance_entries_line_unique")
+  @@map("finance_entries")
+}
+
+model FinanceCancellation {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  bookingId String @unique @map("booking_id") @db.Uuid
+  actorId String @map("actor_id") @db.Uuid
+  actorType String @map("actor_type") @db.VarChar(5)
+  reason String @db.VarChar(500)
+  refundAmount Decimal @map("refund_amount") @db.Decimal
+  calculation Json @db.JsonB
+  sourceJournalId String @map("source_journal_id") @db.Uuid
+  reversalJournalId String? @map("reversal_journal_id") @db.Uuid
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  booking Booking @relation(fields:[bookingId],references:[id],onDelete:Restrict)
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  sourceJournal FinanceJournal @relation("CancellationSource",fields:[sourceJournalId],references:[id],onDelete:Restrict)
+  reversalJournal FinanceJournal? @relation("CancellationReversal",fields:[reversalJournalId],references:[id],onDelete:Restrict)
+  refund FinanceRefund?
+  @@map("finance_cancellations")
+}
+model FinanceRefund {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  cancellationId String? @unique @map("cancellation_id") @db.Uuid
+  complaintId String? @unique @map("complaint_id") @db.Uuid
+  amount Decimal @db.Decimal
+  status String @default("PENDING") @db.VarChar(10)
+  version Int @default(1)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(dbgenerated("clock_timestamp()")) @map("updated_at") @db.Timestamptz(6)
+  cancellation FinanceCancellation? @relation(fields:[cancellationId],references:[id],onDelete:Restrict)
+  confirmation FinanceRefundConfirmation?
+  @@index([status,createdAt,id],map:"finance_refunds_status_created_idx")
+  @@map("finance_refunds")
+}
+model FinanceRefundConfirmation {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  refundId String @unique @map("refund_id") @db.Uuid
+  journalId String @unique @map("journal_id") @db.Uuid
+  actorId String @map("actor_id") @db.Uuid
+  bankReference String @map("bank_reference") @db.VarChar(200)
+  referenceKey String @unique @map("reference_key") @db.VarChar(200)
+  evidenceNote String @map("evidence_note") @db.VarChar(500)
+  reason String @db.VarChar(500)
+  amount Decimal @db.Decimal
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  refund FinanceRefund @relation(fields:[refundId],references:[id],onDelete:Restrict)
+  journal FinanceJournal @relation(fields:[journalId],references:[id],onDelete:Restrict)
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  @@map("finance_refund_confirmations")
+}
+model FinanceBankAccount {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  hostId String @map("host_id") @db.Uuid
+  bankCode String @map("bank_code") @db.VarChar(20)
+  accountNumber String @map("account_number") @db.VarChar(50)
+  accountName String @map("account_name") @db.VarChar(150)
+  status String @default("PENDING") @db.VarChar(10)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  host User @relation(fields:[hostId],references:[id],onDelete:Restrict)
+  currentState FinanceBankState?
+  events FinanceBankEvent[]
+  payoutBatches FinancePayoutBatch[]
+  @@unique([hostId,id])
+  @@index([hostId,createdAt,id],map:"finance_bank_accounts_host_created_idx")
+  @@map("finance_bank_accounts")
+}
+model FinanceBankState {
+  hostId String @id @map("host_id") @db.Uuid
+  accountId String @unique @map("account_id") @db.Uuid
+  version Int
+  host User @relation(fields:[hostId],references:[id],onDelete:Restrict)
+  account FinanceBankAccount @relation(fields:[hostId,accountId],references:[hostId,id],onDelete:Restrict)
+  @@unique([hostId,accountId],map:"finance_bank_states_host_id_account_id_key")
+  @@map("finance_bank_states")
+}
+model FinanceBankEvent {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  accountId String @map("account_id") @db.Uuid
+  actorId String @map("actor_id") @db.Uuid
+  action String @db.VarChar(10)
+  reason String @db.VarChar(500)
+  evidenceNote String @map("evidence_note") @db.VarChar(500)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  account FinanceBankAccount @relation(fields:[accountId],references:[id],onDelete:Restrict)
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  notificationRead FinanceBankNotificationRead?
+  @@index([accountId,createdAt,id],map:"finance_bank_events_account_created_idx")
+  @@map("finance_bank_events")
+}
+model FinanceBankNotificationRead {
+  eventId String @id @map("event_id") @db.Uuid
+  readAt DateTime @default(dbgenerated("clock_timestamp()")) @map("read_at") @db.Timestamptz(6)
+  event FinanceBankEvent @relation(fields:[eventId],references:[id],onDelete:Restrict)
+  @@map("finance_bank_notification_reads")
+}
+model FinanceNoShowReport {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  bookingId String @unique @map("booking_id") @db.Uuid
+  hostId String @map("host_id") @db.Uuid
+  reason String @db.VarChar(500)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  booking Booking @relation(fields:[bookingId],references:[id],onDelete:Restrict)
+  host User @relation(fields:[hostId],references:[id],onDelete:Restrict)
+  resolution FinanceNoShowResolution?
+  @@index([createdAt,id],map:"finance_no_show_reports_created_idx")
+  @@map("finance_no_show_reports")
+}
+model FinanceNoShowResolution {
+  bookingId String @id @map("booking_id") @db.Uuid
+  reportId String @unique @map("report_id") @db.Uuid
+  sourceJournalId String @unique @map("source_journal_id") @db.Uuid
+  actorId String @map("actor_id") @db.Uuid
+  reason String @db.VarChar(500)
+  evidenceNote String @map("evidence_note") @db.VarChar(500)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  booking Booking @relation(fields:[bookingId],references:[id],onDelete:Restrict)
+  report FinanceNoShowReport @relation(fields:[reportId],references:[id],onDelete:Restrict)
+  sourceJournal FinanceJournal @relation(fields:[sourceJournalId],references:[id],onDelete:Restrict)
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  @@map("finance_no_show_resolutions")
+}
+model FinanceComplaint {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  bookingId String @map("booking_id") @db.Uuid
+  guestId String @map("guest_id") @db.Uuid
+  hostId String @map("host_id") @db.Uuid
+  reason String @db.VarChar(500)
+  status String @default("OPEN") @db.VarChar(10)
+  assigneeId String? @map("assignee_id") @db.Uuid
+  version Int @default(1)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  booking Booking @relation(fields:[bookingId],references:[id],onDelete:Restrict)
+  guest User @relation("ComplaintGuest",fields:[guestId],references:[id],onDelete:Restrict)
+  host User @relation("ComplaintHost",fields:[hostId],references:[id],onDelete:Restrict)
+  assignee User? @relation("ComplaintAssignee",fields:[assigneeId],references:[id],onDelete:Restrict)
+  events FinanceComplaintEvent[]
+  resolution FinanceComplaintResolution?
+  @@index([hostId,createdAt,id],map:"finance_complaints_host_created_idx")
+  @@map("finance_complaints")
+}
+model FinanceComplaintEvent {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  complaintId String @map("complaint_id") @db.Uuid
+  actorId String @map("actor_id") @db.Uuid
+  action String @db.VarChar(10)
+  message String @db.VarChar(500)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  createdTxid BigInt @default(dbgenerated("txid_current()")) @map("created_txid")
+  complaint FinanceComplaint @relation(fields:[complaintId],references:[id],onDelete:Restrict)
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  resolution FinanceComplaintResolution?
+  notificationReads FinanceComplaintNotificationRead[]
+  @@index([complaintId,createdAt,id],map:"finance_complaint_events_created_idx")
+  @@map("finance_complaint_events")
+}
+model FinanceComplaintNotificationRead {
+  eventId String @map("event_id") @db.Uuid
+  recipientId String @map("recipient_id") @db.Uuid
+  readAt DateTime @default(dbgenerated("clock_timestamp()")) @map("read_at") @db.Timestamptz(6)
+  event FinanceComplaintEvent @relation(fields:[eventId],references:[id],onDelete:Restrict)
+  recipient User @relation(fields:[recipientId],references:[id],onDelete:Restrict)
+  @@id([eventId,recipientId])
+  @@map("finance_complaint_notification_reads")
+}
+model FinancePayoutBatch {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  hostId String @map("host_id") @db.Uuid
+  bankAccountId String @map("bank_account_id") @db.Uuid
+  bankVersion Int @map("bank_version")
+  bankCode String @map("bank_code") @db.VarChar(20)
+  accountNumber String @map("account_number") @db.VarChar(50)
+  accountName String @map("account_name") @db.VarChar(150)
+  cutoff DateTime @db.Timestamptz(6)
+  amount Decimal @db.Decimal
+  status String @default("DRAFT") @db.VarChar(10)
+  version Int @default(1)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  createdTxid BigInt @default(dbgenerated("txid_current()")) @map("created_txid")
+  host User @relation(fields:[hostId],references:[id],onDelete:Restrict)
+  bankAccount FinanceBankAccount @relation(fields:[hostId,bankAccountId],references:[hostId,id],onDelete:Restrict)
+  items FinancePayoutItem[]
+  events FinancePayoutEvent[]
+  confirmation FinancePayoutConfirmation?
+  @@index([hostId,createdAt,id],map:"finance_payout_batches_host_created")
+  @@map("finance_payout_batches")
+}
+model FinancePayoutItem {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  batchId String @map("batch_id") @db.Uuid
+  bookingId String @map("booking_id") @db.Uuid
+  sourceJournalId String @map("source_journal_id") @db.Uuid
+  amount Decimal @db.Decimal
+  eligibleAt DateTime @map("eligible_at") @db.Timestamptz(6)
+  status String @default("ACTIVE") @db.VarChar(10)
+  batch FinancePayoutBatch @relation(fields:[batchId],references:[id],onDelete:Restrict)
+  booking Booking @relation(fields:[bookingId],references:[id],onDelete:Restrict)
+  sourceJournal FinanceJournal @relation(fields:[sourceJournalId],references:[id],onDelete:Restrict)
+  paidProof FinancePayoutPaidItem?
+  @@unique([batchId,bookingId])
+  @@map("finance_payout_items")
+}
+model FinancePayoutEvent {
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  batchId String @map("batch_id") @db.Uuid
+  actorId String @map("actor_id") @db.Uuid
+  action String @db.VarChar(10)
+  versionBefore Int @map("version_before")
+  reason String @db.VarChar(500)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  createdTxid BigInt @default(dbgenerated("txid_current()")) @map("created_txid")
+  batch FinancePayoutBatch @relation(fields:[batchId],references:[id],onDelete:Restrict)
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  @@unique([batchId,action])
+  @@map("finance_payout_events")
+}
+model FinancePayoutConfirmation {
+  batchId String @id @map("batch_id") @db.Uuid
+  actorId String @map("actor_id") @db.Uuid
+  versionBefore Int @map("version_before")
+  bankReference String @map("bank_reference") @db.VarChar(200)
+  referenceKey String @unique @map("reference_key")
+  evidenceNote String @map("evidence_note") @db.VarChar(500)
+  reason String @db.VarChar(500)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  createdTxid BigInt @default(dbgenerated("txid_current()")) @map("created_txid")
+  batch FinancePayoutBatch @relation(fields:[batchId],references:[id],onDelete:Restrict)
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  items FinancePayoutPaidItem[]
+  @@map("finance_payout_confirmations")
+}
+model FinancePayoutPaidItem {
+  itemId String @id @map("item_id") @db.Uuid
+  journalId String @unique @map("journal_id") @db.Uuid
+  batchId String @map("batch_id") @db.Uuid
+  item FinancePayoutItem @relation(fields:[itemId],references:[id],onDelete:Restrict)
+  journal FinanceJournal @relation(fields:[journalId],references:[id],onDelete:Restrict)
+  confirmation FinancePayoutConfirmation @relation(fields:[batchId],references:[batchId],onDelete:Restrict)
+  @@map("finance_payout_paid_items")
+}
+model FinanceComplaintResolution {
+  complaintId String @id @map("complaint_id") @db.Uuid
+  eventId String @unique @map("event_id") @db.Uuid
+  actorId String @map("actor_id") @db.Uuid
+  decision String @db.VarChar(20)
+  versionBefore Int @map("version_before")
+  reason String @db.VarChar(500)
+  evidenceNote String @map("evidence_note") @db.VarChar(500)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  createdTxid BigInt @default(dbgenerated("txid_current()")) @map("created_txid")
+  complaint FinanceComplaint @relation(fields:[complaintId],references:[id],onDelete:Restrict)
+  event FinanceComplaintEvent @relation(fields:[eventId],references:[id],onDelete:Restrict)
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  @@map("finance_complaint_resolutions")
+}
+
+// Exact committed HTTP response retained for 7 days, scoped to actor + operation + key.
+model BookingIdempotency {
+  id             String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId         String @map("user_id") @db.Uuid
+  operation      String @db.VarChar(30)
+  key            String @db.VarChar(128)
+  requestHash    String @map("request_hash") @db.Char(64)
+  responseStatus Int @map("response_status")
+  responseBody   Json @map("response_body") @db.JsonB
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt      DateTime @map("expires_at") @db.Timestamptz(6)
+  user           User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, operation, key])
+  @@index([expiresAt])
+  @@map("booking_idempotency")
+}

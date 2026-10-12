@@ -1,0 +1,46 @@
+.trigger.trigger {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  flex-shrink: 0;
+  color: var(--foreground);
+  border: 0;
+}
+.trigger.trigger:hover:not(:disabled), .trigger.trigger[aria-expanded="true"] { background: var(--soft-green); }
+/* Leave the upper-right corner free so a two-character badge doesn't hide the bell. */
+.trigger > svg { position: absolute; left: 10px; top: 14px; }
+.dot, .badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-radius: 999px;
+  background: var(--danger);
+  box-shadow: 0 0 0 2px white;
+}
+.dot { width: 8px; height: 8px; right: 8px; top: 7px; }
+.badge { min-width: 18px; height: 18px; padding: 0 4px; display: grid; place-items: center; color: white; font-size: 12px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.panel.panel { --muted: color-mix(in srgb, var(--foreground) 85%, var(--surface)); width: 384px; padding: 0; border-color: var(--line); background: var(--surface); box-shadow: var(--shadow-sm); }
+.panel[data-state="closed"] { visibility: hidden; pointer-events: none; }
+.header { padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.header h2 { font-size: 16px; font-weight: 600; line-height: 1.5; }
+/* The heading receives initial screen-reader focus, but is not an action. */
+.header h2:focus { outline: none; }
+.header p { margin-top: 4px; color: var(--muted); font-size: 12px; }
+.list { padding: 8px; max-height: min(28rem, calc(100dvh - 13rem)); overflow-y: auto; overscroll-behavior: contain; }
+.item { width: 100%; min-height: 44px; display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: 8px; text-align: left; cursor: pointer; }
+.item:hover:not(:disabled), .item:focus-visible { background: var(--soft-green); }
+.item:disabled { cursor: wait; opacity: .7; }
+.unreadSlot { width: 8px; flex-shrink: 0; padding-top: 7px; }
+.unread { width: 8px; height: 8px; display: block; border-radius: 999px; background: var(--primary-dark); }
+.content { display: flex; flex-direction: column; min-width: 0; gap: 4px; }
+.message, .readMessage { font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.message { color: var(--foreground); font-weight: 500; }
+.readMessage { color: var(--muted); }
+.content time { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.state { padding: 24px 12px; color: var(--muted); font-size: 14px; display: grid; justify-items: start; gap: 12px; overflow-wrap: anywhere; }
+.state[role="alert"] { color: var(--danger); }
+.footer { padding: 8px 20px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; }
+.footer a { min-height: 44px; display: flex; align-items: center; color: var(--primary-dark); font-size: 14px; font-weight: 500; }
+.footer a:hover { text-decoration: underline; }
+@media (max-width: 767px) { .panel { display: none; } }

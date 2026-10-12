@@ -1,0 +1,6 @@
+{
+  "attributes": { "version": true, "timestamp": true },
+  "linear_tags": false,
+  "area_tags": true,
+  "include_tags": ["name", "name:vi", "amenity", "shop", "brand", "brand:wikidata", "wikidata", "tourism", "historic", "healthcare", "highway", "public_transport", "bus", "railway", "station", "aeroway"]
+}

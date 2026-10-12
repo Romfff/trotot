@@ -1,0 +1,10 @@
+# Temporary local HTTPS override; never expose DB/Redis/API/web directly.
+# Requires Compose >= 2.24.4 for !override (installed version is 5.1.4).
+services:
+  edge:
+    ports: !override ['${LOCAL_PREVIEW_BIND:-127.0.0.1}:${LOCAL_WEB_PORT:-38443}:8443']
+    volumes: !override
+      - ${LOCAL_HTTPS_CONFIG:?Prepare the local HTTPS config}:/etc/nginx/nginx.conf:ro
+      - ${LOCAL_TLS_DIR:?Prepare local certificates}/server.crt:/etc/nginx/tls/server.crt:ro
+      - ${LOCAL_TLS_DIR:?Prepare local certificates}/server.key:/etc/nginx/tls/server.key:ro
+      - ${LOCAL_TLS_DIR:?Prepare local certificates}/ca.crt:/etc/nginx/tls/ca.crt:ro

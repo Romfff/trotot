@@ -2,7 +2,7 @@
 
 > **Mô hình kết hợp:** Đăng tin thuê trọ dài hạn (*Nhà Tốt / Chợ Tốt*) + Đặt phòng Homestay ngắn hạn trực tuyến (*Agoda / Airbnb*).
 
-> **Trạng thái repo (28/09/2026):** Hiện có tài liệu, chưa có ứng dụng chạy được. Đọc [Kế hoạch phát triển và bàn giao](07_PRODUCTION_DELIVERY_PLAN.md) trước khi triển khai: rà soát lỗi trong thiết kế cũ, phạm vi ra mắt **trọ + homestay cùng lúc**, phân việc backend/UX, milestone, Git/CI, kiểm thử và tiêu chí chạy trên máy khác. Các lệnh setup trong kế hoạch là đầu ra cần xây dựng, chưa phải hướng dẫn chạy ứng dụng hiện có.
+> **Bàn giao code local (12/10/2026):** Backend NestJS, frontend Next.js, migration và test được lưu trong repo. Xem [hướng dẫn backend](docs/BACKEND_SPRINT1_SETUP.md) và [hướng dẫn frontend](docs/FRONTEND_SPRINT1_SETUP.md). API runtime tại `/api/docs`. Upload server riêng, SMS và thanh toán provider thật chưa nghiệm thu; Nearby mặc định tắt. Đây chưa phải bản production. Tài liệu kế hoạch và bằng chứng nội bộ của agent không nằm trong gói bàn giao code.
 >
 > Tài liệu 01–06 bên dưới là thiết kế ban đầu. Các lựa chọn phiên bản, mẫu khóa Redis/webhook, địa chỉ hành chính và lộ trình 10 tuần cần được cập nhật theo kế hoạch mới trước khi dùng; chưa phải cam kết production.
 
@@ -30,6 +30,12 @@ Dự án là nền tảng công nghệ số kết nối **Chủ nhà (Host / Lan
 ---
 
 ## 2. BỘ TÀI LIỆU KẾ HOẠCH & TRIỂN KHAI CHO 2 DEVELOPERS
+
+### Chạy Sprint 1 trên máy khác
+
+Hướng dẫn tạo `.env`, khởi động PostgreSQL/PostGIS + Redis, migrate và chạy NestJS nằm ở [docs/BACKEND_SPRINT1_SETUP.md](docs/BACKEND_SPRINT1_SETUP.md). Không commit/chia sẻ `.env`. Test integration cần bật riêng trên database cô lập; test mặc định qua không đồng nghĩa đã nghiệm thu DB/provider thật.
+
+Sau khi backend chạy, làm theo [hướng dẫn frontend](docs/FRONTEND_SPRINT1_SETUP.md) để tạo `frontend/.env.local`, cài dependency và mở `http://localhost:3000`. Dùng cùng `BFF_PROXY_SECRET` ở hai ứng dụng. Swagger: `http://localhost:5000/api/docs`. OTP mock chỉ dành cho local/dev. Danh sách trọ/homestay đọc API; dữ liệu seed demo không phải dữ liệu production. Upload server riêng đang hoãn.
 
 Hệ thống tài liệu dự án được phân chia thành các file chuyên biệt trong thư mục dự án:
 
