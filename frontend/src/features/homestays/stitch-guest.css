@@ -1,26 +1,26 @@
 .stitch-guest-page { max-width: 1240px; padding: 40px 28px 68px; gap: 28px; }
 .stitch-guest-page > div:first-child h1 {
   font-family: var(--serif);
-  font-size: clamp(30px, 3.6vw, 44px);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: 600;
+  letter-spacing: -0.018em;
+  line-height: 1.15;
 }
 .stitch-guest-page .s3-card { padding: 28px; border-radius: 2px; }
 .stitch-guest-page .s3-card h2 {
-  font-family: var(--serif);
-  font-size: 26px;
-  font-weight: 500;
+  font-family: var(--sans);
+  font-size: 20px;
+  font-weight: 700;
   letter-spacing: -0.015em;
-  line-height: 1.2;
+  line-height: 1.3;
 }
 .stitch-guest-page .s3-list > li { box-shadow: var(--shadow-sm); padding: 22px; border-radius: 2px; }
 .stitch-guest-page .s3-list h3 {
-  font-family: var(--serif);
-  font-size: 24px;
-  font-weight: 500;
+  font-family: var(--sans);
+  font-size: 18.5px;
+  font-weight: 700;
   letter-spacing: -0.015em;
-  line-height: 1.2;
+  line-height: 1.35;
 }
 .stitch-guest-page .s3-price { gap: 12px; }
 .stitch-guest-page .s3-price > div { flex-wrap: wrap; }
@@ -76,15 +76,15 @@
   min-width: 0;
   font-family: var(--sans);
   font-size: 13.5px;
-  font-weight: 500;
-  color: var(--ink-3);
+  font-weight: 600;
+  color: var(--ink-2);
   font-variant-numeric: lining-nums tabular-nums;
 }
 .stitch-homestay-search .homestay-result-amount {
   white-space: nowrap;
   font-family: var(--sans);
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.015em;
   font-variant-numeric: lining-nums tabular-nums;
   color: var(--bm);
@@ -107,7 +107,7 @@
 }
 .stitch-guest-page.stitch-homestay-detail { max-width: 1280px; width: 100%; grid-template-columns: minmax(0, 1fr); }
 .stitch-homestay-detail > div { min-width: 0; }
-.stitch-homestay-detail > nav[aria-label="Đường dẫn trang"] { min-width: 0; font: 500 10.5px/1.5 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; }
+.stitch-homestay-detail > nav[aria-label="Đường dẫn trang"] { min-width: 0; font: 600 11.5px/1.5 var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
 .stitch-homestay-detail > nav[aria-label="Đường dẫn trang"] > a { flex-shrink: 0; white-space: nowrap; }
 .stitch-homestay-detail > nav[aria-label="Đường dẫn trang"] > span:last-child { min-width: 0; }
 .stitch-homestay-detail .stitch-booking-layout > div { min-width: 0; }

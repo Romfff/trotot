@@ -12,6 +12,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { LegalAppointmentVoucher, LegalAppointmentVoucherModalButton } from "@/components/booking/LegalBookingVoucher";
 import "@/features/homestays/stitch-guest.css";
 
 type Status = AppointmentResponseDto["status"];
@@ -80,6 +81,7 @@ export function AppointmentsScreen({ host = false }: { host?: boolean }) {
 }
 
 function AppointmentList({ sessionId, host }: { sessionId: string | null; host: boolean }) {
+  const user = useAuthStore(state => state.user);
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("");
   const [selection, setSelection] = useState<{ record: AppointmentResponseDto; action: Action } | null>(null);
@@ -105,7 +107,10 @@ function AppointmentList({ sessionId, host }: { sessionId: string | null; host: 
       {list.data.data.length === 0 ? <p className="py-6 text-sm text-gray-600">Không có lịch hẹn trong mục này.</p> : <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white">
         {list.data.data.map(record => <li key={record.id} className="p-5 sm:p-6 space-y-4">
           <AppointmentSummary record={record} />
-          <div className="flex flex-wrap gap-3">{availableAppointmentActions(record, host).map(action => <Button key={action} variant="secondary" disabled={busy} onClick={() => { mutation.reset(); setReason(""); setSelection({ record, action }); }}>{actions[action]}</Button>)}</div>
+          <div className="flex flex-wrap items-center gap-3">
+            <LegalAppointmentVoucherModalButton record={record} tenantNameFallback={user?.fullName} tenantPhoneFallback={user?.phone} />
+            {availableAppointmentActions(record, host).map(action => <Button key={action} variant="secondary" disabled={busy} onClick={() => { mutation.reset(); setReason(""); setSelection({ record, action }); }}>{actions[action]}</Button>)}
+          </div>
         </li>)}
       </ul>}
       <Pages page={page} totalPages={list.data.meta.totalPages} busy={list.isFetching || mutation.isPending} change={setPage} />
@@ -128,7 +133,7 @@ export function AppointmentRequest({ propertyId, title, isAvailable }: { propert
   if (status === "initializing") return <p role="status" className="text-sm">Đang kiểm tra phiên…</p>;
   if (!user) return <Link href="/login" className="button button-secondary">Đăng nhập để hẹn xem trọ</Link>;
   if (user.role !== "TENANT" || user.status !== "ACTIVE") return <p className="text-sm text-gray-600">Đặt lịch xem trọ dành cho tài khoản khách đang hoạt động.</p>;
-  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button variant="secondary">Đặt lịch xem trọ</Button></DialogTrigger><DialogContent className="max-h-[90dvh] overflow-y-auto" onInteractOutside={event => event.preventDefault()}>
+  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button variant="secondary">Đặt lịch xem trọ</Button></DialogTrigger><DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto" onInteractOutside={event => event.preventDefault()}>
     <DialogHeader><DialogTitle>Đặt lịch xem trọ</DialogTitle><DialogDescription>{title}. Lịch cần chủ nhà xác nhận; không giữ phòng và không thu tiền.</DialogDescription></DialogHeader>
     <RequestForm key={sessionId} attempt={attempt} propertyId={propertyId} userName={user.fullName} userPhone={user.phone} />
   </DialogContent></Dialog>;
@@ -148,7 +153,7 @@ function RequestForm({ propertyId, userName, userPhone, attempt }: { propertyId:
     const time = text("scheduledTime");
     mutation.mutate({ propertyId, tenantName: text("tenantName"), tenantPhone: text("tenantPhone"), scheduledDate: text("scheduledDate"), scheduledTime: time.length === 5 ? `${time}:00` : time, ...(text("notes") ? { notes: text("notes") } : {}) });
   }
-  if (mutation.isSuccess) return <div className="space-y-4"><p role="status" className="text-sm">Đã gửi yêu cầu xem trọ. Chờ chủ nhà xác nhận; chưa gửi SMS/Zalo.</p><AppointmentSummary record={mutation.data.data} /><Link className="button button-secondary" href="/my-appointments">Xem lịch hẹn của tôi</Link></div>;
+  if (mutation.isSuccess) return <div className="space-y-4"><p role="status" className="text-sm">Đã gửi yêu cầu xem trọ. Chờ chủ nhà xác nhận; chưa gửi SMS/Zalo.</p><AppointmentSummary record={mutation.data.data} /><LegalAppointmentVoucher record={mutation.data.data} tenantNameFallback={userName} tenantPhoneFallback={userPhone} /><Link className="button button-secondary" href="/my-appointments">Xem lịch hẹn của tôi</Link></div>;
   const requestError = mutation.error ? apiError(mutation.error) : null;
   const fields = requestError?.fieldErrors ?? {};
   return <form onSubmit={submit} className="space-y-4">

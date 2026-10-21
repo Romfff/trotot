@@ -39,6 +39,7 @@ import { HostNoShowReport } from "@/features/no-show/host-report";
 import { BookingReview, PropertyReviews } from "@/features/reviews/reviews";
 import {NearbySection} from "@/features/nearby/section";
 import { ChatLauncher } from "@/features/chat/chat";
+import { LegalBookingVoucher, LegalBookingVoucherModalButton } from "@/components/booking/LegalBookingVoucher";
 
 const currency = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 });
 const deadline = (date: string) =>
@@ -117,23 +118,13 @@ export function ReadState({ loading, error, retry }: { loading: boolean; error: 
   }
   if (loading) {
     return (
-      <div aria-busy="true" className="s3-loading">
-        <span className="sr-only" role="status">
-          Đang tải dữ liệu
-        </span>
-        {[0, 1, 2].map((n) => (
-          <div
-            key={n}
-            className="h-28 rounded-xl bg-white border border-gray-200 p-4 animate-pulse motion-reduce:animate-none flex items-center justify-between"
-          >
-            <div className="space-y-3 w-2/3">
-              <div className="h-4 bg-brand-tint rounded w-3/4" />
-              <div className="h-3 bg-bg rounded w-1/2" />
-              <div className="h-3 bg-bg rounded w-1/3" />
-            </div>
-            <div className="h-9 w-24 bg-brand-tint rounded-lg" />
-          </div>
-        ))}
+      <div aria-busy="true" className="s3-state py-12">
+        <div className="flex flex-col items-center justify-center gap-3 text-center">
+          <RotateCw className="w-7 h-7 text-brand animate-spin" aria-hidden="true" />
+          <p role="status" className="font-sans text-sm font-bold text-ink">
+            Đang tải dữ liệu…
+          </p>
+        </div>
       </div>
     );
   }
@@ -230,7 +221,6 @@ const emptyStay: Stay = { unitId: "", checkIn: "", checkOut: "", adults: 1, chil
 
 function HomestayCover({ url, title }: { url: string | null; title: string }) {
   const [failed, setFailed] = useState(false);
-  const [loaded, setLoaded] = useState(false);
   return (
     <div className="homestay-result-cover">
       {url && !failed ? (
@@ -241,9 +231,8 @@ function HomestayCover({ url, title }: { url: string | null; title: string }) {
           width={640}
           height={480}
           loading="lazy"
-          onLoad={() => setLoaded(true)}
           onError={() => setFailed(true)}
-          className={`h-full w-full object-cover transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
+          className="h-full w-full object-cover"
         />
       ) : (
         <div className="homestay-result-placeholder">
@@ -898,22 +887,25 @@ function CheckoutForm() {
           </Link>
         </div>
       ) : booking ? (
-        <section className="s3-card space-y-5 max-w-xl mx-auto">
-          <div className="flex items-center gap-2 text-brand">
-            <CheckCircle2 className="w-6 h-6" aria-hidden="true" />
-            <h2 className="text-lg font-bold text-ink">Đơn {booking.bookingCode} đã được tạo thành công!</h2>
-          </div>
-          <BookingSummary booking={booking} />
-          <Link className="button" href={`/bookings/${booking.bookingId}/payment`}>Kiểm tra thanh toán</Link>
-          <div className="pt-2 flex flex-wrap gap-3">
-            <Link className="button" href="/bookings">
-              Xem đơn của tôi
-            </Link>
-            <Link className="button button-secondary" href="/homestay">
-              Tìm phòng khác
-            </Link>
-          </div>
-        </section>
+        <div className="space-y-6 max-w-4xl mx-auto">
+          <section className="s3-card space-y-5">
+            <div className="flex items-center gap-2 text-brand">
+              <CheckCircle2 className="w-6 h-6" aria-hidden="true" />
+              <h2 className="text-lg font-bold text-ink">Đơn {booking.bookingCode} đã được tạo thành công!</h2>
+            </div>
+            <BookingSummary booking={booking} />
+            <div className="pt-2 flex flex-wrap items-center gap-3">
+              <Link className="button" href={`/bookings/${booking.bookingId}/payment`}>Kiểm tra thanh toán</Link>
+              <Link className="button button-secondary" href="/bookings">
+                Xem đơn của tôi
+              </Link>
+              <Link className="button button-secondary" href="/homestay">
+                Tìm phòng khác
+              </Link>
+            </div>
+          </section>
+          <LegalBookingVoucher booking={booking} defaultExpanded />
+        </div>
       ) : (
         <div className="stitch-checkout-layout grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px] gap-6 items-start">
           <div className="lg:col-start-2 lg:row-start-1 lg:sticky lg:top-24">
@@ -1282,7 +1274,8 @@ export function BookingList({ host = false }: { host?: boolean }) {
                       </div>
 
                       <BookingSummary booking={booking} />
-                      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-4">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+                        <LegalBookingVoucherModalButton booking={booking} />
                         {!host ? <Link className="text-link underline" href={`/bookings/${booking.bookingId}/payment`}>Thanh toán / kiểm tra giao dịch</Link> : null}
                         <Link className="text-link underline" href={host?"/host/finance/complaints":`/bookings/${booking.bookingId}/complaints`}>
                           {host?"Xem khiếu nại của khách":"Khiếu nại về đơn này"}

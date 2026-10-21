@@ -11,13 +11,14 @@ import { decimalPriceLabel } from '@/lib/decimal-price-label';
 import { useAuthStore } from '@/stores/auth-store';
 import { subscribeBookingRealtime } from '@/lib/booking-realtime';
 import { canPayBooking,preparePaymentSession,validatePaymentSession } from './payment-session';
+import { LegalPaymentVoucher } from '@/components/booking/LegalBookingVoucher';
 import '@/features/homestays/stitch-guest.css';
 
 const deadline=(date:string)=>new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',dateStyle:'short',timeStyle:'short'}).format(new Date(date));
 const uuid=/^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 export function BookingPaymentScreen({id}:{id:string}) {
   const {sessionId,status,user}=useAuthStore();
-  return <div className="stitch-workflow-page stitch-payment-page mx-auto w-full max-w-2xl space-y-6 p-4 sm:p-6">
+  return <div className="stitch-workflow-page stitch-payment-page mx-auto w-full max-w-3xl space-y-6 p-4 sm:p-6">
     <header><h1 className="text-xl font-semibold">Thanh toán đặt phòng</h1>
       <p className="mt-2 text-sm text-gray-600 text-pretty">Trạng thái được kiểm tra từ máy chủ. Quay lại từ cổng hoặc nhận thông báo không có nghĩa là đã thanh toán.</p></header>
     {!uuid.test(id)?<Alert>Đường dẫn đơn không hợp lệ.</Alert>:status==='initializing'?<p role="status">Đang kiểm tra phiên…</p>
@@ -28,6 +29,7 @@ export function BookingPaymentScreen({id}:{id:string}) {
   </div>;
 }
 function PaymentContent({id,sessionId}:{id:string;sessionId:string}) {
+  const user=useAuthStore(s=>s.user);
   const query=useQuery({queryKey:['booking-payment-status',sessionId,id],queryFn:({signal})=>bookingPaymentsApi.status(id,signal),
     retry:false,gcTime:0,refetchOnWindowFocus:true});
   const [connected,setConnected]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -84,6 +86,7 @@ function PaymentContent({id,sessionId}:{id:string;sessionId:string}) {
     </div>
     <p className="text-xs text-gray-600">{connected?'Đã nối thông báo realtime; mỗi thông báo sẽ kiểm tra lại API.':'Chưa nối realtime. Trạng thái được tải khi mở, quay lại tab hoặc bấm Kiểm tra lại.'}</p>
     {soundNotice?<p role="status" className="text-xs text-gray-600">{soundNotice}</p>:null}
+    {query.data?<div className="pt-2"><LegalPaymentVoucher status={query.data} guestName={user?.fullName} guestPhone={user?.phone} /></div>:null}
   </section>;
 }
 export function PaymentStatusDetails({data,updating=false}:{data:BookingPaymentStatus;updating?:boolean}) {

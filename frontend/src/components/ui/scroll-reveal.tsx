@@ -18,11 +18,11 @@ export function ScrollReveal({
   children,
   className = "",
   delayMs = 0,
-  threshold = 0.08,
-  rootMargin = "0px 0px -32px 0px",
+  threshold = 0.05,
+  rootMargin = "0px 0px -24px 0px",
 }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     const el = ref.current;
@@ -33,6 +33,13 @@ export function ScrollReveal({
       return;
     }
 
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.95) {
+      setVisible(true);
+      return;
+    }
+
+    setVisible(false);
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
